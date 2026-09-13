@@ -97,7 +97,18 @@ async function once<T>(
     }
 
     log("request_ok", { path, capability, latencyMs });
-    return { ok: true, data: (envelope.data ?? null) as T, latencyMs };
+    // Some GMGN endpoints wrap the payload twice ({code,data:{code,data:{...}}}).
+    let payload: unknown = envelope.data ?? null;
+    let guard = 0;
+    while (
+      payload && typeof payload === "object" && !Array.isArray(payload) &&
+      "code" in (payload as Record<string, unknown>) && "data" in (payload as Record<string, unknown>) &&
+      guard < 3
+    ) {
+      payload = (payload as Record<string, unknown>)["data"];
+      guard += 1;
+    }
+    return { ok: true, data: payload as T, latencyMs };
   } catch (error) {
     const latencyMs = Date.now() - started;
     const aborted = error instanceof Error && error.name === "AbortError";

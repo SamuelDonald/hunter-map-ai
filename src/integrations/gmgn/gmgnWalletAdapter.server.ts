@@ -5,15 +5,14 @@ import { normalizeSmartMoneyTrade, normalizeWalletStats } from "./gmgnNormalizer
 import type { AdapterResult } from "./gmgnMarketAdapter.server";
 import type { NormalizedWallet, NormalizedWalletEvent } from "./gmgnTypes";
 
-function extractRows(data: unknown): unknown[] {
+function extractRows(data: unknown, depth = 0): unknown[] {
   if (Array.isArray(data)) return data;
-  if (data && typeof data === "object") {
-    for (const key of ["list", "trades", "activities", "data"]) {
-      const value = (data as Record<string, unknown>)[key];
-      if (Array.isArray(value)) return value;
-    }
+  if (!data || typeof data !== "object" || depth > 3) return [];
+  const bag = data as Record<string, unknown>;
+  for (const key of ["list", "trades", "activities", "rank"]) {
+    if (Array.isArray(bag[key])) return bag[key] as unknown[];
   }
-  return [];
+  return extractRows(bag["data"], depth + 1);
 }
 
 /** Recent smart-money trades across Solana. */
