@@ -17,7 +17,7 @@ import { controlBot } from "@/lib/hunter/bot.functions";
 import { bootstrapAccount } from "@/lib/hunter/strategies.functions";
 import type { MapEdge, MapNode } from "@/lib/hunter/market.functions";
 import {
-  useBotStatus, useHunterMapData, useHunterRealtime, usePortfolio, useProviderStates, useSignals, useStrategies,
+  useBotStatus, useHunterMapData, useHunterRealtime, useIntegrationHealth, usePortfolio, useSignals, useStrategies,
 } from "./hooks";
 
 const nav = [

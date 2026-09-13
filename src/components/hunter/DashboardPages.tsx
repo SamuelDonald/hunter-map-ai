@@ -20,8 +20,8 @@ import {
   money, pct, usd,
 } from "./HunterUI";
 import {
-  usePortfolio, usePositions, useProviderStates, useRiskEvents, useRiskSettings, useSmartMoney, useStrategies,
-  useSystemLogs, useTokens, useTrades,
+  useCandidateAnalysis, useIntegrationHealth, usePortfolio, usePositions, useProviderStates, useRiskEvents,
+  useRiskSettings, useSmartMoney, useStrategies, useSystemLogs, useTokens, useTrades,
 } from "./hooks";
 
 const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
