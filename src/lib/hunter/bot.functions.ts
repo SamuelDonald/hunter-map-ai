@@ -6,7 +6,7 @@ import type { BotSessionRow, BotState, BotStatusRow } from "./types";
 
 /** Allowed transitions for the server-side bot state machine. */
 const TRANSITIONS: Record<BotState, BotState[]> = {
-  OFFLINE: ["STARTING"],
+  OFFLINE: ["STARTING", "KILLED"],
   STARTING: ["SCANNING", "ERROR", "KILLED", "OFFLINE"],
   SCANNING: ["ANALYZING", "READY", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
   ANALYZING: ["READY", "TRADING", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
@@ -42,7 +42,7 @@ export const getBotStatus = createServerFn({ method: "GET" })
 type Action = "START" | "PAUSE" | "RESUME" | "STOP" | "KILL" | "RESET_KILL" | "RISK_PAUSE";
 
 const TARGET: Record<Exclude<Action, "RESET_KILL">, BotState> = {
-  START: "SCANNING",
+  START: "STARTING",
   PAUSE: "PAUSED",
   RESUME: "READY",
   STOP: "OFFLINE",
@@ -138,6 +138,23 @@ export const controlBot = createServerFn({ method: "POST" })
         user_id: userId, strategy_id: strategyId, event_type: "MANUAL_KILL", severity: "CRITICAL",
         message: data.reason ?? "Bot killed by user",
       });
+    }
+
+    // A successful start immediately advances into the scanning phase.
+    if (data.action === "START") {
+      const now = new Date().toISOString();
+      await supabase
+        .from("bot_status")
+        .update({ state: "SCANNING", state_changed_at: now })
+        .eq("user_id", userId);
+      if (sessionId) {
+        await supabase.from("bot_sessions").update({ status: "SCANNING" }).eq("id", sessionId).eq("user_id", userId);
+      }
+      await supabase.from("system_logs").insert({
+        user_id: userId, level: "INFO", component: "BOT", event: "BOT_SCANNING",
+        message: "Bot state STARTING → SCANNING", metadata: { from: "STARTING", to: "SCANNING" },
+      });
+      return { state: "SCANNING" as BotState };
     }
 
     return { state: target };
