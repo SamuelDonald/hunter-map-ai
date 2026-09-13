@@ -42,7 +42,7 @@ export const getBotStatus = createServerFn({ method: "GET" })
 type Action = "START" | "PAUSE" | "RESUME" | "STOP" | "KILL" | "RESET_KILL" | "RISK_PAUSE";
 
 const TARGET: Record<Exclude<Action, "RESET_KILL">, BotState> = {
-  START: "SCANNING",
+  START: "STARTING",
   PAUSE: "PAUSED",
   RESUME: "READY",
   STOP: "OFFLINE",
