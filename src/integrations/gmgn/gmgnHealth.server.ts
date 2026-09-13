@@ -95,7 +95,7 @@ export async function recordSuccess(
 export async function recordFailure(
   capability: GmgnCapability,
   message: string,
-  options: { capabilityUnavailable?: boolean; terminal?: boolean } = {},
+  options: { capabilityUnavailable?: boolean; terminal?: boolean; rateLimited?: boolean } = {},
 ): Promise<void> {
   const { data } = await supabaseAdmin
     .from("provider_integrations")
@@ -108,7 +108,10 @@ export async function recordFailure(
     ...(row?.capabilities ?? {}),
     ...(options.capabilityUnavailable ? { [capability]: "UNAVAILABLE" as CapabilityState } : {}),
   };
-  const breaker = options.terminal || failures >= LIMITS.FAILURE_CIRCUIT_BREAK;
+  // Provider-signalled rate limiting parks the integration at once: continuing
+  // to call a throttled provider only extends the block.
+  const pauseMs = options.rateLimited ? LIMITS.RATE_LIMIT_PAUSE_MS : LIMITS.CIRCUIT_PAUSE_MS;
+  const breaker = options.terminal || options.rateLimited || failures >= LIMITS.FAILURE_CIRCUIT_BREAK;
   const status: IntegrationStatus = options.terminal
     ? "ERROR"
     : row?.last_success_at
@@ -122,7 +125,7 @@ export async function recordFailure(
       last_error: message.slice(0, 500),
       capabilities,
       consecutive_failures: failures,
-      paused_until: breaker ? new Date(Date.now() + LIMITS.CIRCUIT_PAUSE_MS).toISOString() : null,
+      paused_until: breaker ? new Date(Date.now() + pauseMs).toISOString() : null,
     },
     { onConflict: "provider" },
   );

@@ -4,13 +4,20 @@
 //
 // Includes throttling, in-flight de-duplication, short-lived caching, timeouts,
 // bounded retry with backoff, and structured logging that never records secrets.
-import { GMGN_HOST, LIMITS, getGmgnApiKey } from "./gmgnConfig.server";
+import { GMGN_HOST, LIMITS, getGmgnApiKey, isRateLimitMessage } from "./gmgnConfig.server";
 import { recordFailure, recordSuccess } from "./gmgnHealth.server";
 import type { GmgnCapability } from "./gmgnTypes";
 
 export type GmgnResult<T> =
   | { ok: true; data: T; latencyMs: number }
-  | { ok: false; error: string; status: number; retryable: boolean; terminal: boolean };
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      retryable: boolean;
+      terminal: boolean;
+      rateLimited?: boolean;
+    };
 
 type Query = Record<string, string | number | boolean | string[] | undefined>;
 
@@ -84,15 +91,16 @@ async function once<T>(
       const message = envelope.error ?? envelope.message ?? `HTTP ${response.status}`;
       const status = response.status || code;
       const authFailure = status === 401 || status === 403;
-      const unavailable = status === 404 || status === 405;
-      const rateLimited = status === 429;
+      const rateLimited = status === 429 || isRateLimitMessage(String(message));
       log("request_failed", { path, capability, status, code, message, latencyMs });
       return {
         ok: false,
         error: `${message}`,
         status,
-        retryable: rateLimited || status >= 500,
+        // Retrying a throttled provider only deepens the throttle.
+        retryable: !rateLimited && status >= 500,
         terminal: authFailure,
+        rateLimited,
       };
     }
 
@@ -166,6 +174,7 @@ export async function gmgnRequest<T>(options: {
       await recordFailure(capability, result.error, {
         capabilityUnavailable: result.status === 404 || result.status === 405,
         terminal: result.terminal,
+        rateLimited: result.rateLimited === true,
       });
     }
     return result;

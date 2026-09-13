@@ -22,6 +22,20 @@
       "when": 1789322079186,
       "tag": "0002_phase3_gmgn_integration_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789322915570,
+      "tag": "0003_private_job_secrets",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789322953533,
+      "tag": "0004_grant_private_job_secrets_to_sandbox",
+      "breakpoints": true
     }
   ]
 }

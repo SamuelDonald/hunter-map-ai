@@ -157,6 +157,20 @@ async function refreshTopTokens(report: ScanReport) {
 }
 
 async function ingestSmartMoney(report: ScanReport) {
+  // Smart-money data has a 15-minute freshness window, so it is polled far less
+  // often than prices — this keeps the provider's rate limits intact.
+  const { data: lastSync } = await admin()
+    .from("wallets")
+    .select("last_provider_sync")
+    .order("last_provider_sync", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+  const syncedAt = (lastSync as { last_provider_sync: string | null } | null)?.last_provider_sync ?? null;
+  const ageSeconds = syncedAt ? (Date.now() - new Date(syncedAt).getTime()) / 1000 : Infinity;
+  if (ageSeconds < FRESHNESS.SMART_MONEY_MAX_AGE / 3) {
+    return [] as ReturnType<typeof signalsFromWalletEvents>;
+  }
+
   const result = await fetchSmartMoneyActivity();
   if (!result.ok) {
     report.errors.push(`SMART_MONEY_${result.status}: ${result.error}`);
@@ -294,10 +308,24 @@ async function persistSignals(
   const { data: tokens } = await admin().from("tokens").select("id, address").in("address", addresses);
   const tokenIdByAddress = new Map((tokens ?? []).map((t) => [t.address, t.id]));
 
-  const rows = derived
+  const candidates = derived
     .filter((s) => tokenIdByAddress.has(s.tokenAddress))
     .slice(0, 40)
-    .map((s) => ({
+    // Per-user provider id keeps the global (source, provider_signal_id) dedupe intact.
+    .map((s) => ({ signal: s, providerSignalId: `${s.providerSignalId}:${account.userId}` }));
+  if (candidates.length === 0) return;
+
+  // Explicit de-duplication: the same provider event must never be stored twice.
+  const { data: known } = await admin()
+    .from("signals")
+    .select("provider_signal_id")
+    .eq("source", "GMGN")
+    .in("provider_signal_id", candidates.map((c) => c.providerSignalId));
+  const knownIds = new Set((known ?? []).map((row) => row.provider_signal_id));
+
+  const rows = candidates
+    .filter((c) => !knownIds.has(c.providerSignalId))
+    .map(({ signal: s, providerSignalId }) => ({
       user_id: account.userId,
       token_id: tokenIdByAddress.get(s.tokenAddress) as string,
       signal_type: s.signalType,
@@ -308,16 +336,13 @@ async function persistSignals(
       source: "GMGN" as const,
       status: "NEW" as const,
       metadata: s.metadata,
-      // Per-user provider id keeps the global (source, provider_signal_id) dedupe intact.
-      provider_signal_id: `${s.providerSignalId}:${account.userId}`,
+      provider_signal_id: providerSignalId,
     }));
   if (rows.length === 0) return;
 
-  const { error, count } = await admin()
-    .from("signals")
-    .upsert(rows as never[], { onConflict: "source,provider_signal_id", ignoreDuplicates: true, count: "exact" });
+  const { error } = await admin().from("signals").insert(rows as never[]);
   if (error) report.errors.push(`SIGNALS: ${error.message}`);
-  else report.signals_created += count ?? 0;
+  else report.signals_created += rows.length;
 }
 
 async function manageOpenPositions(account: ActiveAccount, params: StrategyParametersRow, report: ScanReport) {
@@ -507,8 +532,15 @@ export async function runScannerCycle(trigger: string): Promise<ScanReport> {
 
   try {
     await ingestDiscovery(report);
-    await refreshTopTokens(report);
-    const derived = await ingestSmartMoney(report);
+    // A provider throttle mid-cycle stops further provider calls; stored data
+    // still drives position management below.
+    let derived: Awaited<ReturnType<typeof ingestSmartMoney>> = [];
+    if (!(await isGmgnPaused()).paused) {
+      await refreshTopTokens(report);
+      if (!(await isGmgnPaused()).paused) derived = await ingestSmartMoney(report);
+    } else {
+      report.status = "PROVIDER_PAUSED";
+    }
 
     const accounts = await loadActiveAccounts();
     for (const account of accounts) {
