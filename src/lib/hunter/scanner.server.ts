@@ -202,8 +202,16 @@ async function ingestSmartMoney(report: ScanReport) {
     : { data: [] as { transaction_hash: string | null }[] };
   const knownHashes = new Set((known ?? []).map((row) => row.transaction_hash));
 
+  const seen = new Set<string>();
   const activityRows = events
     .filter((e) => e.transactionHash === null || !knownHashes.has(e.transactionHash))
+    .filter((e) => {
+      // In-batch de-duplication: the provider can repeat one on-chain trade.
+      const key = `${e.wallet.address}:${e.transactionHash ?? e.fingerprint}:${e.activityType}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .map((e) => ({
       wallet_id: walletIdByAddress.get(e.wallet.address) ?? null,
       token_id: tokenIdByAddress.get(e.tokenAddress) ?? null,
@@ -218,7 +226,15 @@ async function ingestSmartMoney(report: ScanReport) {
 
   if (activityRows.length) {
     const { error } = await admin().from("wallet_activity").insert(activityRows as never[]);
-    if (error) report.errors.push(`WALLET_ACTIVITY: ${error.message}`);
+    if (error) {
+      // Fall back to row-by-row so one duplicate cannot drop the whole batch.
+      let failed = 0;
+      for (const row of activityRows) {
+        const { error: rowError } = await admin().from("wallet_activity").insert(row as never);
+        if (rowError && !rowError.message.includes("duplicate key")) failed += 1;
+      }
+      if (failed) report.errors.push(`WALLET_ACTIVITY: ${failed} rows rejected`);
+    }
   }
 
   // token-level smart money freshness marker
