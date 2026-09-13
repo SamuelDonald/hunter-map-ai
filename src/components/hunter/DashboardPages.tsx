@@ -70,7 +70,7 @@ export function TokenTable() {
                     <td className={Number(t.price_change_1h ?? 0) >= 0 ? "text-positive" : "text-negative"}>{pct(num(t.price_change_1h))}</td>
                     <td>{money(num(t.volume_24h))}</td>
                     <td>{t.smart_money_score ?? "—"}</td>
-                    <td>{t.holder_count ?? "—"}</td>
+                    <td>{t.holders ?? "—"}</td>
                     <td><b className="text-primary">{t.hunter_score ?? "—"}</b></td>
                   </tr>
                 ))}
@@ -365,10 +365,10 @@ export function AIActivityFeed() {
           {logs.slice(0, 20).map((log) => (
             <li key={log.id} className="signal-item animate-fade-in">
               <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-2"><Dot tone={log.level === "ERROR" ? "negative" : log.level === "WARN" ? "warning" : "ai"} />{log.category}</span>
+                <span className="flex items-center gap-2"><Dot tone={log.level === "ERROR" ? "negative" : log.level === "WARNING" ? "warning" : "ai"} />{log.component}</span>
                 <span>{new Date(log.created_at).toLocaleTimeString()}</span>
               </div>
-              <p className="mt-1 text-sm">{log.message}</p>
+              <p className="mt-1 text-sm">{log.message ?? log.event}</p>
             </li>
           ))}
         </ul>
