@@ -20,7 +20,7 @@ export const LIMITS = {
   /** Bounded work per scan run. */
   DISCOVERY_LIMIT: 50,
   SMART_MONEY_LIMIT: 50,
-  TOKEN_REFRESH_PER_RUN: 5,
+  TOKEN_REFRESH_PER_RUN: 3,
   CANDIDATES_PER_USER: 5,
   /** Consecutive provider failures before the scanner circuit-breaks. */
   FAILURE_CIRCUIT_BREAK: 5,
