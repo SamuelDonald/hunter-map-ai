@@ -140,6 +140,23 @@ export const controlBot = createServerFn({ method: "POST" })
       });
     }
 
+    // A successful start immediately advances into the scanning phase.
+    if (data.action === "START") {
+      const now = new Date().toISOString();
+      await supabase
+        .from("bot_status")
+        .update({ state: "SCANNING", state_changed_at: now })
+        .eq("user_id", userId);
+      if (sessionId) {
+        await supabase.from("bot_sessions").update({ status: "SCANNING" }).eq("id", sessionId).eq("user_id", userId);
+      }
+      await supabase.from("system_logs").insert({
+        user_id: userId, level: "INFO", component: "BOT", event: "BOT_SCANNING",
+        message: "Bot state STARTING → SCANNING", metadata: { from: "STARTING", to: "SCANNING" },
+      });
+      return { state: "SCANNING" as BotState };
+    }
+
     return { state: target };
   });
 
