@@ -6,7 +6,7 @@ import type { BotSessionRow, BotState, BotStatusRow } from "./types";
 
 /** Allowed transitions for the server-side bot state machine. */
 const TRANSITIONS: Record<BotState, BotState[]> = {
-  OFFLINE: ["STARTING"],
+  OFFLINE: ["STARTING", "KILLED"],
   STARTING: ["SCANNING", "ERROR", "KILLED", "OFFLINE"],
   SCANNING: ["ANALYZING", "READY", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
   ANALYZING: ["READY", "TRADING", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
