@@ -7,14 +7,17 @@ import { normalizeRankRow } from "./gmgnNormalizer";
 import type { AdapterResult } from "./gmgnMarketAdapter.server";
 import type { NormalizedToken } from "./gmgnTypes";
 
-type RankEnvelope = { rank?: unknown[] } | unknown[] | null;
+type RankEnvelope = unknown;
 
-function extractRows(data: RankEnvelope): unknown[] {
+/** GMGN nests the payload (data.data.rank), so unwrap defensively. */
+function extractRows(data: RankEnvelope, depth = 0): unknown[] {
   if (Array.isArray(data)) return data;
-  if (data && typeof data === "object" && Array.isArray((data as { rank?: unknown[] }).rank)) {
-    return (data as { rank: unknown[] }).rank;
+  if (!data || typeof data !== "object" || depth > 3) return [];
+  const bag = data as Record<string, unknown>;
+  for (const key of ["rank", "list", "tokens"]) {
+    if (Array.isArray(bag[key])) return bag[key] as unknown[];
   }
-  return [];
+  return extractRows(bag["data"], depth + 1);
 }
 
 /**
