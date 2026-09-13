@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import type { ProviderState, RiskSettingsRow, StrategyParametersRow, StrategyRow } from "./types";
+
+export type StrategyParametersUpdate = Database["public"]["Tables"]["strategy_parameters"]["Update"];
+export type RiskSettingsUpdate = Database["public"]["Tables"]["risk_settings"]["Update"];
 
 export type StrategyBundle = { strategy: StrategyRow; parameters: StrategyParametersRow | null };
 
@@ -112,7 +116,7 @@ export const deleteStrategy = createServerFn({ method: "POST" })
 
 export const updateStrategyParameters = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { strategy_id: string; patch: Record<string, number | boolean> }) => input)
+  .inputValidator((input: { strategy_id: string; patch: StrategyParametersUpdate }) => input)
   .handler(async ({ data, context }) => {
     // ownership check — RLS also enforces this, we fail fast with a clear error
     const { data: owned } = await context.supabase
@@ -139,7 +143,7 @@ export const getRiskSettings = createServerFn({ method: "GET" })
 
 export const updateRiskSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: Record<string, number>) => input)
+  .inputValidator((input: RiskSettingsUpdate) => input)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("risk_settings").update(data).eq("user_id", context.userId);
     if (error) throw new Error(error.message);
