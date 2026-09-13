@@ -16,9 +16,9 @@ export const tokens: Token[] = symbols.map((symbol, i) => ({
 }));
 
 export type RelationType = "Smart Money" | "Wallet" | "Correlation" | "Cluster" | "Liquidity";
-export const relationships = tokens.slice(1).map((token, i) => ({
+export const relationships: { from: string; to: string; type: RelationType }[] = tokens.slice(1).map((token, i) => ({
   from: tokens[(i * 7) % (i + 1)].symbol, to: token.symbol,
-  type: (["Smart Money", "Wallet", "Correlation", "Cluster", "Liquidity"] as RelationType[])[i % 5],
+  type: (["Smart Money", "Wallet", "Correlation", "Cluster", "Liquidity"] as const)[i % 5] ?? "Cluster",
 }));
 
 export const portfolio = [
