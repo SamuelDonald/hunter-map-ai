@@ -174,6 +174,7 @@ export async function gmgnRequest<T>(options: {
       await recordFailure(capability, result.error, {
         capabilityUnavailable: result.status === 404 || result.status === 405,
         terminal: result.terminal,
+        rateLimited: result.rateLimited === true,
       });
     }
     return result;
