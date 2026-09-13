@@ -125,7 +125,7 @@ export async function recordFailure(
       last_error: message.slice(0, 500),
       capabilities,
       consecutive_failures: failures,
-      paused_until: breaker ? new Date(Date.now() + LIMITS.CIRCUIT_PAUSE_MS).toISOString() : null,
+      paused_until: breaker ? new Date(Date.now() + pauseMs).toISOString() : null,
     },
     { onConflict: "provider" },
   );
