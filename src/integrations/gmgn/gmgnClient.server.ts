@@ -84,15 +84,16 @@ async function once<T>(
       const message = envelope.error ?? envelope.message ?? `HTTP ${response.status}`;
       const status = response.status || code;
       const authFailure = status === 401 || status === 403;
-      const unavailable = status === 404 || status === 405;
-      const rateLimited = status === 429;
+      const rateLimited = status === 429 || isRateLimitMessage(String(message));
       log("request_failed", { path, capability, status, code, message, latencyMs });
       return {
         ok: false,
         error: `${message}`,
         status,
-        retryable: rateLimited || status >= 500,
+        // Retrying a throttled provider only deepens the throttle.
+        retryable: !rateLimited && status >= 500,
         terminal: authFailure,
+        rateLimited,
       };
     }
 
