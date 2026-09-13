@@ -17,7 +17,7 @@ import { controlBot } from "@/lib/hunter/bot.functions";
 import { bootstrapAccount } from "@/lib/hunter/strategies.functions";
 import type { MapEdge, MapNode } from "@/lib/hunter/market.functions";
 import {
-  useBotStatus, useHunterMapData, useHunterRealtime, usePortfolio, useProviderStates, useSignals, useStrategies,
+  useBotStatus, useHunterMapData, useHunterRealtime, useIntegrationHealth, usePortfolio, useSignals, useStrategies,
 } from "./hooks";
 
 const nav = [
@@ -218,15 +218,17 @@ export function SignalFeed({ compact = false }: { compact?: boolean }) {
 }
 
 export function StatusBar() {
-  const { data: providers } = useProviderStates();
   const { data: bot } = useBotStatus();
-  const marketData = providers?.find((p) => p.name === "MARKET_DATA")?.status ?? "NOT_CONFIGURED";
+  const { data: health } = useIntegrationHealth();
+  const gmgn = health?.gmgn.status ?? "NOT_CONFIGURED";
+  const gmgnTone = gmgn === "CONNECTED" ? "positive" : gmgn === "DEGRADED" ? "warning" : gmgn === "ERROR" ? "negative" : "muted";
+  const stale = health?.freshness.market_data_stale ?? true;
   const items: [string, string, string][] = [
     ["NETWORK", "SOLANA", "ai"],
-    ["DATA", marketData === "READY" ? "CONNECTED" : "NOT CONNECTED", marketData === "READY" ? "positive" : "muted"],
+    ["GMGN", gmgn.replace(/_/g, " "), gmgnTone],
+    ["DATA", stale ? "STALE" : "LIVE", stale ? "warning" : "positive"],
     ["BOT", bot?.status?.state ?? "OFFLINE", stateTone(bot?.status?.state)],
     ["MODE", bot?.status?.mode ?? "PAPER", "warning"],
-    ["LIVE", "NOT CONFIGURED", "muted"],
     ["WALLET", "NOT CONNECTED", "muted"],
   ];
   return (

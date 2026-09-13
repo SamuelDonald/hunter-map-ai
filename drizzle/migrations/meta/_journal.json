@@ -15,6 +15,13 @@
       "when": 1789318947604,
       "tag": "0001_phase2_schema_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789322079186,
+      "tag": "0002_phase3_gmgn_integration_metadata",
+      "breakpoints": true
     }
   ]
 }

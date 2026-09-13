@@ -17,6 +17,7 @@ import {
   listTrades,
 } from "@/lib/hunter/trading.functions";
 import { getHunterMap, listSmartMoney, listTokens, type TokenFilters } from "@/lib/hunter/market.functions";
+import { analyzeCandidates, getIntegrationHealth } from "@/lib/hunter/integrations.functions";
 
 /** Keeps queries fresh from Realtime instead of polling. */
 export function useHunterRealtime() {
@@ -112,6 +113,17 @@ export function useSystemLogs() {
 export function useProviderStates() {
   const fn = useServerFn(getProviderStates);
   return useQuery({ queryKey: ["providers"], queryFn: () => fn() });
+}
+
+/** Live GMGN health plus data freshness, refreshed every 20s. */
+export function useIntegrationHealth() {
+  const fn = useServerFn(getIntegrationHealth);
+  return useQuery({ queryKey: ["integration-health"], queryFn: () => fn(), refetchInterval: 20_000 });
+}
+
+export function useCandidateAnalysis() {
+  const fn = useServerFn(analyzeCandidates);
+  return useQuery({ queryKey: ["candidate-analysis"], queryFn: () => fn(), refetchInterval: 30_000 });
 }
 
 export function useTokens(filters: TokenFilters) {

@@ -133,6 +133,33 @@ export type Database = {
           },
         ]
       }
+      job_leases: {
+        Row: {
+          holder: string | null
+          job_name: string
+          last_result: Json | null
+          last_run_at: string | null
+          locked_until: string
+          updated_at: string
+        }
+        Insert: {
+          holder?: string | null
+          job_name: string
+          last_result?: Json | null
+          last_run_at?: string | null
+          locked_until: string
+          updated_at?: string
+        }
+        Update: {
+          holder?: string | null
+          job_name?: string
+          last_result?: Json | null
+          last_run_at?: string | null
+          locked_until?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
@@ -393,6 +420,45 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_integrations: {
+        Row: {
+          capabilities: Json
+          consecutive_failures: number
+          last_error: string | null
+          last_error_at: string | null
+          last_success_at: string | null
+          latency_ms: number | null
+          paused_until: string | null
+          provider: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          capabilities?: Json
+          consecutive_failures?: number
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
+          latency_ms?: number | null
+          paused_until?: string | null
+          provider: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          capabilities?: Json
+          consecutive_failures?: number
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
+          latency_ms?: number | null
+          paused_until?: string | null
+          provider?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -772,6 +838,7 @@ export type Database = {
           buys_5m: number | null
           chain: string
           created_at: string
+          data_source: string | null
           decimals: number | null
           holders: number | null
           hunter_score: number | null
@@ -780,6 +847,7 @@ export type Database = {
           is_new: boolean
           is_verified: boolean
           last_market_update: string | null
+          last_smart_money_update: string | null
           liquidity: number | null
           logo_url: string | null
           market_cap: number | null
@@ -806,6 +874,7 @@ export type Database = {
           buys_5m?: number | null
           chain?: string
           created_at?: string
+          data_source?: string | null
           decimals?: number | null
           holders?: number | null
           hunter_score?: number | null
@@ -814,6 +883,7 @@ export type Database = {
           is_new?: boolean
           is_verified?: boolean
           last_market_update?: string | null
+          last_smart_money_update?: string | null
           liquidity?: number | null
           logo_url?: string | null
           market_cap?: number | null
@@ -840,6 +910,7 @@ export type Database = {
           buys_5m?: number | null
           chain?: string
           created_at?: string
+          data_source?: string | null
           decimals?: number | null
           holders?: number | null
           hunter_score?: number | null
@@ -848,6 +919,7 @@ export type Database = {
           is_new?: boolean
           is_verified?: boolean
           last_market_update?: string | null
+          last_smart_money_update?: string | null
           liquidity?: number | null
           logo_url?: string | null
           market_cap?: number | null
@@ -1068,9 +1140,11 @@ export type Database = {
           address: string
           chain: string
           created_at: string
+          data_source: string | null
           id: string
           is_tracked: boolean
           label: string | null
+          last_provider_sync: string | null
           realized_pnl: number | null
           smart_money_score: number | null
           total_trades: number | null
@@ -1082,9 +1156,11 @@ export type Database = {
           address: string
           chain?: string
           created_at?: string
+          data_source?: string | null
           id?: string
           is_tracked?: boolean
           label?: string | null
+          last_provider_sync?: string | null
           realized_pnl?: number | null
           smart_money_score?: number | null
           total_trades?: number | null
@@ -1096,9 +1172,11 @@ export type Database = {
           address?: string
           chain?: string
           created_at?: string
+          data_source?: string | null
           id?: string
           is_tracked?: boolean
           label?: string | null
+          last_provider_sync?: string | null
           realized_pnl?: number | null
           smart_money_score?: number | null
           total_trades?: number | null
@@ -1113,7 +1191,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      acquire_job_lease: {
+        Args: { _holder: string; _job_name: string; _ttl_seconds: number }
+        Returns: boolean
+      }
+      release_job_lease: {
+        Args: { _job_name: string; _result: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       bot_state:

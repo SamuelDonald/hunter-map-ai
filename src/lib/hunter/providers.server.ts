@@ -152,53 +152,98 @@ export class GMGNExecutionProvider implements ExecutionProvider {
   }
 }
 
-class UnconfiguredMarketData implements MarketDataProvider {
-  readonly name = "MARKET_DATA";
+// ------------------------------------------------------------- intelligence
+// GMGN-backed data providers. Status is derived from configuration only; each
+// call reports UNAVAILABLE when the live request fails, never fabricated data.
+import { isGmgnConfigured } from "@/integrations/gmgn/gmgnConfig.server";
+import { fetchTokenPrice, fetchTokenSnapshot } from "@/integrations/gmgn/gmgnMarketAdapter.server";
+import { discoverTokens } from "@/integrations/gmgn/gmgnTokenAdapter.server";
+import { fetchSmartMoneyActivity } from "@/integrations/gmgn/gmgnWalletAdapter.server";
+
+const configuredStatus = (): ProviderStatus => (isGmgnConfigured() ? "READY" : "NOT_CONFIGURED");
+
+class GmgnMarketData implements MarketDataProvider {
+  readonly name = "GMGN_MARKET_DATA";
   status(): ProviderStatus {
-    return "NOT_CONFIGURED";
+    return configuredStatus();
   }
-  async getTokenSnapshot() {
-    return notConfigured<Partial<TokenRow>>("Market data provider");
+  async getTokenSnapshot(chain: string, address: string): Promise<ProviderResult<Partial<TokenRow>>> {
+    const result = await fetchTokenSnapshot(chain, address);
+    if (!result.ok) return { ok: false, status: result.status, error: result.error };
+    const t = result.data;
+    return {
+      ok: true,
+      data: {
+        chain: t.chain,
+        address: t.address,
+        symbol: t.symbol,
+        name: t.name,
+        price: t.price,
+        liquidity: t.liquidity,
+        market_cap: t.marketCap,
+        volume_5m: t.volume5m,
+        volume_1h: t.volume1h,
+        volume_24h: t.volume24h,
+        price_change_5m: t.priceChange5m,
+        price_change_1h: t.priceChange1h,
+        price_change_24h: t.priceChange24h,
+        buys_5m: t.buys5m,
+        sells_5m: t.sells5m,
+        holders: t.holders,
+      } as Partial<TokenRow>,
+    };
   }
-  async getPrice() {
-    return notConfigured<number>("Market data provider");
+  async getPrice(chain: string, address: string): Promise<ProviderResult<number>> {
+    const result = await fetchTokenPrice(chain, address);
+    if (!result.ok) return { ok: false, status: result.status, error: result.error };
+    return { ok: true, data: result.data };
   }
 }
 
-class UnconfiguredTokenIntelligence implements TokenIntelligenceProvider {
-  readonly name = "TOKEN_INTELLIGENCE";
+class GmgnTokenIntelligence implements TokenIntelligenceProvider {
+  readonly name = "GMGN_TOKEN_INTELLIGENCE";
   status(): ProviderStatus {
-    return "NOT_CONFIGURED";
+    return configuredStatus();
   }
-  async discoverTokens() {
-    return notConfigured<Partial<TokenRow>[]>("Token intelligence provider");
+  async discoverTokens(): Promise<ProviderResult<Partial<TokenRow>[]>> {
+    const result = await discoverTokens();
+    if (!result.ok) return { ok: false, status: result.status, error: result.error };
+    return {
+      ok: true,
+      data: result.data.map((t) => ({ chain: t.chain, address: t.address, symbol: t.symbol }) as Partial<TokenRow>),
+    };
   }
 }
 
-class UnconfiguredWalletIntelligence implements WalletIntelligenceProvider {
-  readonly name = "WALLET_INTELLIGENCE";
+class GmgnWalletIntelligence implements WalletIntelligenceProvider {
+  readonly name = "GMGN_WALLET_INTELLIGENCE";
   status(): ProviderStatus {
-    return "NOT_CONFIGURED";
+    return configuredStatus();
   }
-  async getTrackedWallets() {
-    return notConfigured<unknown[]>("Wallet intelligence provider");
+  async getTrackedWallets(): Promise<ProviderResult<unknown[]>> {
+    const result = await fetchSmartMoneyActivity();
+    if (!result.ok) return { ok: false, status: result.status, error: result.error };
+    return { ok: true, data: result.data.map((e) => e.wallet) };
   }
 }
 
-class UnconfiguredSignals implements SignalProvider {
-  readonly name = "SIGNAL_FEED";
+class GmgnSignals implements SignalProvider {
+  readonly name = "GMGN_SIGNAL_FEED";
   status(): ProviderStatus {
-    return "NOT_CONFIGURED";
+    return configuredStatus();
   }
-  async pullSignals() {
-    return notConfigured<unknown[]>("Signal provider");
+  async pullSignals(): Promise<ProviderResult<unknown[]>> {
+    const result = await fetchSmartMoneyActivity();
+    if (!result.ok) return { ok: false, status: result.status, error: result.error };
+    const { signalsFromWalletEvents } = await import("@/integrations/gmgn/gmgnSignalAdapter.server");
+    return { ok: true, data: signalsFromWalletEvents(result.data) };
   }
 }
 
-export const marketDataProvider: MarketDataProvider = new UnconfiguredMarketData();
-export const tokenIntelligenceProvider: TokenIntelligenceProvider = new UnconfiguredTokenIntelligence();
-export const walletIntelligenceProvider: WalletIntelligenceProvider = new UnconfiguredWalletIntelligence();
-export const signalProvider: SignalProvider = new UnconfiguredSignals();
+export const marketDataProvider: MarketDataProvider = new GmgnMarketData();
+export const tokenIntelligenceProvider: TokenIntelligenceProvider = new GmgnTokenIntelligence();
+export const walletIntelligenceProvider: WalletIntelligenceProvider = new GmgnWalletIntelligence();
+export const signalProvider: SignalProvider = new GmgnSignals();
 
 const paper = new PaperExecutionProvider();
 const gmgn = new GMGNExecutionProvider();
@@ -210,10 +255,10 @@ export function getExecutionProvider(mode: "PAPER" | "LIVE"): ExecutionProvider 
 
 export function providerStates(): ProviderState[] {
   return [
-    { name: "MARKET_DATA", status: marketDataProvider.status() },
-    { name: "TOKEN_INTELLIGENCE", status: tokenIntelligenceProvider.status() },
-    { name: "WALLET_INTELLIGENCE", status: walletIntelligenceProvider.status() },
-    { name: "SIGNAL_FEED", status: signalProvider.status() },
+    { name: "MARKET_DATA", status: marketDataProvider.status(), detail: "GMGN" },
+    { name: "TOKEN_INTELLIGENCE", status: tokenIntelligenceProvider.status(), detail: "GMGN" },
+    { name: "WALLET_INTELLIGENCE", status: walletIntelligenceProvider.status(), detail: "GMGN" },
+    { name: "SIGNAL_FEED", status: signalProvider.status(), detail: "GMGN" },
     { name: "PAPER_EXECUTION", status: paper.status() },
     { name: "LIVE_EXECUTION", status: gmgn.status(), detail: "LIVE EXECUTION — NOT CONFIGURED" },
   ];
