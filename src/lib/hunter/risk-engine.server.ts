@@ -65,6 +65,13 @@ export async function evaluateTradeRisk(
     if (["OFFLINE", "PAUSED", "ERROR"].includes(botStatus.state)) reasons.push(`BOT_NOT_TRADING_${botStatus.state}`);
   }
 
+  // The risk kill switch is a hard boundary that no strategy can override.
+  if (risk.kill_switch) {
+    reasons.push("RISK_KILL_SWITCH_ENGAGED");
+    event_types.push("MANUAL_KILL");
+    risk_score += 100;
+  }
+
   if (!strategy.enabled) reasons.push("STRATEGY_DISABLED");
   if (strategy.mode === "LIVE") reasons.push("LIVE_EXECUTION_NOT_CONFIGURED");
 
