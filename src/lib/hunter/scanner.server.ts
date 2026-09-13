@@ -157,6 +157,20 @@ async function refreshTopTokens(report: ScanReport) {
 }
 
 async function ingestSmartMoney(report: ScanReport) {
+  // Smart-money data has a 15-minute freshness window, so it is polled far less
+  // often than prices — this keeps the provider's rate limits intact.
+  const { data: lastSync } = await admin()
+    .from("wallets")
+    .select("last_provider_sync")
+    .order("last_provider_sync", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+  const syncedAt = (lastSync as { last_provider_sync: string | null } | null)?.last_provider_sync ?? null;
+  const ageSeconds = syncedAt ? (Date.now() - new Date(syncedAt).getTime()) / 1000 : Infinity;
+  if (ageSeconds < FRESHNESS.SMART_MONEY_MAX_AGE / 3) {
+    return [] as ReturnType<typeof signalsFromWalletEvents>;
+  }
+
   const result = await fetchSmartMoneyActivity();
   if (!result.ok) {
     report.errors.push(`SMART_MONEY_${result.status}: ${result.error}`);
