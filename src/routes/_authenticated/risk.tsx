@@ -1,0 +1,2 @@
+import { createFileRoute } from "@tanstack/react-router"; import { RiskPage } from "@/components/hunter/DashboardPages";
+export const Route=createFileRoute("/_authenticated/risk")({head:()=>({meta:[{title:"Risk Management — HUNTER 2X"},{name:"description",content:"Configure simulated trading risk limits."},{property:"og:title",content:"Risk Management — HUNTER 2X"},{property:"og:description",content:"Demo daily limits, exposure and bot health controls."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:RiskPage});

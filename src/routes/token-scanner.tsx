@@ -1,2 +1,0 @@
-import { createFileRoute } from "@tanstack/react-router"; import { ScannerPage } from "@/components/hunter/DashboardPages";
-export const Route=createFileRoute("/token-scanner")({head:()=>({meta:[{title:"Token Scanner — HUNTER 2X"},{name:"description",content:"Search and rank simulated Solana token opportunities."},{property:"og:title",content:"Token Scanner — HUNTER 2X"},{property:"og:description",content:"A sortable demo token intelligence scanner."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:ScannerPage});
