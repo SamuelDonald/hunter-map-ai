@@ -177,3 +177,15 @@
 @media(min-width:640px){.page{padding:26px 20px 60px}.metrics-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.metric-card{padding:16px}}@media(min-width:1536px){.metrics-grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media(max-width:639px){.page-header{align-items:start}.map-shell{height:510px}.map-toolbar{align-items:flex-start}.segmented{max-width:calc(100% - 82px)}.segmented span{display:none}.map-toolbar .flex button:last-child{display:none}.control-row{grid-template-columns:1fr;gap:12px}.statusbar{justify-content:flex-start;overflow-x:auto}.statusbar>span:nth-child(4),.statusbar>span:nth-child(5){display:none}.token-detail{width:100%}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+
+.table-scroll{overflow-x:auto}
+.not-connected{display:grid;justify-items:center;gap:8px;border:1px dashed var(--border);background:color-mix(in oklab,var(--surface-deep) 70%,transparent);padding:34px 20px;text-align:center}
+.not-connected svg{height:26px;width:26px;color:var(--muted-foreground)}
+.not-connected strong{font-family:var(--font-display);font-size:12px;letter-spacing:.06em;color:var(--muted-foreground)}
+.not-connected p{max-width:44ch;font-size:11px;color:var(--muted-foreground)}
+.sm-bubble{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid color-mix(in oklab,var(--primary) 55%,transparent);border-radius:50%;background:radial-gradient(circle,color-mix(in oklab,var(--primary) 20%,transparent),var(--surface-deep));box-shadow:0 0 24px color-mix(in oklab,var(--primary) 12%,transparent);transition:.2s}
+.sm-bubble:hover{transform:scale(1.05)}
+.sm-bubble strong{font-family:var(--font-display);font-size:14px}
+.sm-bubble small{max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;color:var(--muted-foreground)}
+.sm-bubble-active{border-color:var(--warning);box-shadow:0 0 30px color-mix(in oklab,var(--warning) 22%,transparent)}
+.link-cluster{stroke-dasharray:1 5}

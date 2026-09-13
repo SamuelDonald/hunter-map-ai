@@ -121,7 +121,7 @@ export function BotControls({ compact = false }: { compact?: boolean }) {
   async function run(action: "START" | "PAUSE" | "RESUME" | "STOP" | "KILL" | "RESET_KILL") {
     setBusy(true);
     try {
-      const result = await control({ data: { action, strategyId } });
+      const result = await control({ data: strategyId ? { action, strategyId } : { action } });
       toast.success(`Bot state: ${result.state}`);
       await queryClient.invalidateQueries({ queryKey: ["bot-status"] });
       await queryClient.invalidateQueries({ queryKey: ["logs"] });
@@ -369,7 +369,7 @@ export function BubbleMap({ expanded = false }: { expanded?: boolean }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [drag, setDrag] = useState<{ x: number; y: number; ox: number; oy: number } | null>(null);
-  const { data, isLoading } = useHunterMapData({ minHunterScore: minScore });
+  const { data, isLoading } = useHunterMapData(minScore === undefined ? {} : { minHunterScore: minScore });
 
   const nodes = useMemo(() => {
     const all = data?.nodes ?? [];
