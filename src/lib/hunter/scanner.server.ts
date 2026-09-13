@@ -50,8 +50,9 @@ async function logSystem(
   metadata: Record<string, unknown> = {},
   userId: string | null = null,
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await admin().from("system_logs").insert({ user_id: userId, level, component: "SCANNER", event, message, metadata });
+  await admin()
+    .from("system_logs")
+    .insert({ user_id: userId, level, component: "SCANNER", event, message, metadata: metadata as never });
 }
 
 // ------------------------------------------------------------------ ingestion
@@ -241,7 +242,7 @@ type ActiveAccount = {
   state: string;
 };
 
-const TRADING_STATES = ["SCANNING", "ANALYZING", "READY", "TRADING"];
+const TRADING_STATES = ["SCANNING", "ANALYZING", "READY", "TRADING"] as const;
 
 async function loadActiveAccounts(): Promise<ActiveAccount[]> {
   const { data } = await admin()
