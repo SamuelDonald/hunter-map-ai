@@ -1,3 +1,0 @@
-import { createFileRoute } from "@tanstack/react-router"; import { PageHeader, SettingsSections } from "@/components/hunter/HunterUI";
-function SettingsPage(){return <div className="page"><PageHeader title="SETTINGS" subtitle="Configure your local terminal preferences"/><SettingsSections/></div>}
-export const Route=createFileRoute("/settings")({head:()=>({meta:[{title:"Settings — HUNTER 2X"},{name:"description",content:"Configure local HUNTER 2X frontend preferences."},{property:"og:title",content:"Settings — HUNTER 2X"},{property:"og:description",content:"Appearance, notification, trading and risk preferences."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:SettingsPage});

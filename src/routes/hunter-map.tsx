@@ -1,2 +1,0 @@
-import { createFileRoute } from "@tanstack/react-router"; import { MapPage } from "@/components/hunter/DashboardPages";
-export const Route=createFileRoute("/hunter-map")({head:()=>({meta:[{title:"Hunter Map — HUNTER 2X"},{name:"description",content:"Interactive demo token relationship map."},{property:"og:title",content:"Hunter Map — HUNTER 2X"},{property:"og:description",content:"Explore simulated token clusters and Smart Money relationships."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:MapPage});

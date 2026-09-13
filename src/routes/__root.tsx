@@ -8,7 +8,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { AppShell } from "@/components/hunter/HunterUI";
+import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -78,11 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "HUNTER 2X — Crypto Intelligence" },
-      { name: "description", content: "A demo Solana token discovery and paper-trading intelligence terminal." },
+      { title: "HUNTER 2X — Solana Trading Intelligence" },
+      { name: "description", content: "Solana token discovery, smart-money intelligence and risk-governed paper trading." },
       { name: "author", content: "HUNTER 2X" },
-      { property: "og:title", content: "HUNTER 2X — Crypto Intelligence" },
-      { property: "og:description", content: "Explore demo token signals, Smart Money activity, and paper trading intelligence." },
+      { property: "og:title", content: "HUNTER 2X — Solana Trading Intelligence" },
+      { property: "og:description", content: "Strategy scoring, risk governance and paper execution for Solana trading." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -119,10 +120,21 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      void router.invalidate();
+      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell><Outlet /></AppShell>
+      <Outlet />
+      <Toaster />
     </QueryClientProvider>
   );
 }
