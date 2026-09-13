@@ -77,7 +77,10 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    supabase.auth
+      .getUser()
+      .then(({ data }) => setEmail(data.user?.email ?? null))
+      .catch(() => setEmail(null));
   }, []);
 
   async function signOut() {
