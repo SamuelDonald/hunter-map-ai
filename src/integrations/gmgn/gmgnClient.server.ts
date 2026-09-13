@@ -4,13 +4,20 @@
 //
 // Includes throttling, in-flight de-duplication, short-lived caching, timeouts,
 // bounded retry with backoff, and structured logging that never records secrets.
-import { GMGN_HOST, LIMITS, getGmgnApiKey } from "./gmgnConfig.server";
+import { GMGN_HOST, LIMITS, getGmgnApiKey, isRateLimitMessage } from "./gmgnConfig.server";
 import { recordFailure, recordSuccess } from "./gmgnHealth.server";
 import type { GmgnCapability } from "./gmgnTypes";
 
 export type GmgnResult<T> =
   | { ok: true; data: T; latencyMs: number }
-  | { ok: false; error: string; status: number; retryable: boolean; terminal: boolean };
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      retryable: boolean;
+      terminal: boolean;
+      rateLimited?: boolean;
+    };
 
 type Query = Record<string, string | number | boolean | string[] | undefined>;
 
