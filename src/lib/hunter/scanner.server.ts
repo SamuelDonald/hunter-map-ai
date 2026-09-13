@@ -518,8 +518,15 @@ export async function runScannerCycle(trigger: string): Promise<ScanReport> {
 
   try {
     await ingestDiscovery(report);
-    await refreshTopTokens(report);
-    const derived = await ingestSmartMoney(report);
+    // A provider throttle mid-cycle stops further provider calls; stored data
+    // still drives position management below.
+    let derived: Awaited<ReturnType<typeof ingestSmartMoney>> = [];
+    if (!(await isGmgnPaused()).paused) {
+      await refreshTopTokens(report);
+      if (!(await isGmgnPaused()).paused) derived = await ingestSmartMoney(report);
+    } else {
+      report.status = "PROVIDER_PAUSED";
+    }
 
     const accounts = await loadActiveAccounts();
     for (const account of accounts) {
