@@ -274,14 +274,15 @@ export function RiskPanel() {
   const { data: events } = useRiskEvents();
   const save = useServerFn(updateRiskSettings);
   const queryClient = useQueryClient();
-  const [patch, setPatch] = useState<Record<string, number>>({});
+  const [patch, setPatch] = useState<Record<string, number | boolean>>({});
   const [busy, setBusy] = useState(false);
 
   if (isLoading) return <Panel title="RISK"><p className="p-4 text-xs text-muted-foreground">Loading risk settings…</p></Panel>;
   if (!risk) return <Panel title="RISK"><NotConnected title="NO RISK SETTINGS" detail="Risk settings are created automatically for your account." /></Panel>;
 
-  const row = risk as unknown as Record<string, number>;
+  const row = risk as unknown as Record<string, number | boolean>;
   const value = (k: string) => (patch[k] !== undefined ? patch[k] : row[k]);
+  const killSwitch = Boolean(value("kill_switch"));
   const todayLoss = Math.max(0, -(portfolio?.today_pnl ?? 0));
   const limit = Number(value("max_daily_loss") ?? 0);
   const usedPct = limit > 0 ? Math.min(100, (todayLoss / limit) * 100) : 0;
@@ -311,6 +312,14 @@ export function RiskPanel() {
                 onChange={(e) => setPatch((p) => ({ ...p, [key]: Number(e.target.value) }))} />
             </div>
           ))}
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 px-3 py-2 md:col-span-2">
+            <div>
+              <Label htmlFor="kill_switch">Kill switch</Label>
+              <p className="text-xs text-muted-foreground">Blocks every new order regardless of strategy settings.</p>
+            </div>
+            <Switch id="kill_switch" checked={killSwitch}
+              onCheckedChange={(v) => setPatch((p) => ({ ...p, kill_switch: v }))} />
+          </div>
         </div>
         <div className="mt-6 flex gap-3">
           <Button disabled={busy || Object.keys(patch).length === 0} onClick={() => void onSave()}>Save limits</Button>

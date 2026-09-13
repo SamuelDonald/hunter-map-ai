@@ -4,16 +4,20 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { BotSessionRow, BotState, BotStatusRow } from "./types";
 
-/** Allowed transitions for the server-side bot state machine. */
+/**
+ * Allowed transitions for the server-side bot state machine.
+ * Mirrors the database trigger validate_bot_state_transition(), which is the
+ * final authority — the frontend can never reach a privileged state directly.
+ */
 const TRANSITIONS: Record<BotState, BotState[]> = {
-  OFFLINE: ["STARTING", "KILLED"],
-  STARTING: ["SCANNING", "ERROR", "KILLED", "OFFLINE"],
+  OFFLINE: ["STARTING", "KILLED", "ERROR"],
+  STARTING: ["SCANNING", "ERROR", "KILLED", "OFFLINE", "PAUSED"],
   SCANNING: ["ANALYZING", "READY", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
-  ANALYZING: ["READY", "TRADING", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
+  ANALYZING: ["READY", "SCANNING", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
   READY: ["TRADING", "SCANNING", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
-  TRADING: ["READY", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
-  PAUSED: ["READY", "SCANNING", "OFFLINE", "KILLED", "RISK_PAUSED"],
-  RISK_PAUSED: ["PAUSED", "READY", "OFFLINE", "KILLED"],
+  TRADING: ["SCANNING", "READY", "PAUSED", "RISK_PAUSED", "ERROR", "KILLED", "OFFLINE"],
+  PAUSED: ["SCANNING", "OFFLINE", "ERROR", "KILLED"],
+  RISK_PAUSED: ["SCANNING", "PAUSED", "OFFLINE", "ERROR", "KILLED"],
   ERROR: ["OFFLINE", "STARTING", "KILLED"],
   KILLED: [], // requires an explicit reset action
 };
@@ -44,7 +48,7 @@ type Action = "START" | "PAUSE" | "RESUME" | "STOP" | "KILL" | "RESET_KILL" | "R
 const TARGET: Record<Exclude<Action, "RESET_KILL">, BotState> = {
   START: "STARTING",
   PAUSE: "PAUSED",
-  RESUME: "READY",
+  RESUME: "SCANNING",
   STOP: "OFFLINE",
   KILL: "KILLED",
   RISK_PAUSE: "RISK_PAUSED",

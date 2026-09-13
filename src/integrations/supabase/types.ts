@@ -463,6 +463,7 @@ export type Database = {
           consecutive_loss_limit: number
           created_at: string
           id: string
+          kill_switch: boolean
           max_daily_loss: number
           max_exposure: number
           max_positions: number
@@ -475,6 +476,7 @@ export type Database = {
           consecutive_loss_limit?: number
           created_at?: string
           id?: string
+          kill_switch?: boolean
           max_daily_loss?: number
           max_exposure?: number
           max_positions?: number
@@ -487,6 +489,7 @@ export type Database = {
           consecutive_loss_limit?: number
           created_at?: string
           id?: string
+          kill_switch?: boolean
           max_daily_loss?: number
           max_exposure?: number
           max_positions?: number
@@ -506,6 +509,7 @@ export type Database = {
           hunter_score: number | null
           id: string
           metadata: Json
+          provider_signal_id: string | null
           reason_codes: string[]
           signal_type: Database["public"]["Enums"]["signal_type"]
           source: Database["public"]["Enums"]["signal_source"]
@@ -521,6 +525,7 @@ export type Database = {
           hunter_score?: number | null
           id?: string
           metadata?: Json
+          provider_signal_id?: string | null
           reason_codes?: string[]
           signal_type: Database["public"]["Enums"]["signal_type"]
           source?: Database["public"]["Enums"]["signal_source"]
@@ -536,6 +541,7 @@ export type Database = {
           hunter_score?: number | null
           id?: string
           metadata?: Json
+          provider_signal_id?: string | null
           reason_codes?: string[]
           signal_type?: Database["public"]["Enums"]["signal_type"]
           source?: Database["public"]["Enums"]["signal_source"]
