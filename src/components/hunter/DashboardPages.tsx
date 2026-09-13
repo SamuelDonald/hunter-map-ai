@@ -274,14 +274,15 @@ export function RiskPanel() {
   const { data: events } = useRiskEvents();
   const save = useServerFn(updateRiskSettings);
   const queryClient = useQueryClient();
-  const [patch, setPatch] = useState<Record<string, number>>({});
+  const [patch, setPatch] = useState<Record<string, number | boolean>>({});
   const [busy, setBusy] = useState(false);
 
   if (isLoading) return <Panel title="RISK"><p className="p-4 text-xs text-muted-foreground">Loading risk settings…</p></Panel>;
   if (!risk) return <Panel title="RISK"><NotConnected title="NO RISK SETTINGS" detail="Risk settings are created automatically for your account." /></Panel>;
 
-  const row = risk as unknown as Record<string, number>;
+  const row = risk as unknown as Record<string, number | boolean>;
   const value = (k: string) => (patch[k] !== undefined ? patch[k] : row[k]);
+  const killSwitch = Boolean(value("kill_switch"));
   const todayLoss = Math.max(0, -(portfolio?.today_pnl ?? 0));
   const limit = Number(value("max_daily_loss") ?? 0);
   const usedPct = limit > 0 ? Math.min(100, (todayLoss / limit) * 100) : 0;
