@@ -22,6 +22,7 @@ import { Route as AuthenticatedStrategiesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTokenScannerRouteImport } from './routes/_authenticated/token-scanner'
 import { Route as AuthenticatedTradeHistoryRouteImport } from './routes/_authenticated/trade-history'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as ApiPublicHooksHunterScanRouteImport } from './routes/api/public/hooks/hunter-scan'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -89,6 +90,12 @@ const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksHunterScanRoute =
+  ApiPublicHooksHunterScanRouteImport.update({
+    id: '/api/public/hooks/hunter-scan',
+    path: '/api/public/hooks/hunter-scan',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/token-scanner': typeof AuthenticatedTokenScannerRoute
   '/trade-history': typeof AuthenticatedTradeHistoryRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/api/public/hooks/hunter-scan': typeof ApiPublicHooksHunterScanRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -117,6 +125,7 @@ export interface FileRoutesByTo {
   '/trade-history': typeof AuthenticatedTradeHistoryRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/': typeof AuthenticatedIndexRoute
+  '/api/public/hooks/hunter-scan': typeof ApiPublicHooksHunterScanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,6 +142,7 @@ export interface FileRoutesById {
   '/_authenticated/trade-history': typeof AuthenticatedTradeHistoryRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/api/public/hooks/hunter-scan': typeof ApiPublicHooksHunterScanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/token-scanner'
     | '/trade-history'
     | '/wallet'
+    | '/api/public/hooks/hunter-scan'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/trade-history'
     | '/wallet'
     | '/'
+    | '/api/public/hooks/hunter-scan'
   id:
     | '__root__'
     | '/_authenticated'
@@ -178,11 +190,13 @@ export interface FileRouteTypes {
     | '/_authenticated/trade-history'
     | '/_authenticated/wallet'
     | '/_authenticated/'
+    | '/api/public/hooks/hunter-scan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHooksHunterScanRoute: typeof ApiPublicHooksHunterScanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -278,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/hunter-scan': {
+      id: '/api/public/hooks/hunter-scan'
+      path: '/api/public/hooks/hunter-scan'
+      fullPath: '/api/public/hooks/hunter-scan'
+      preLoaderRoute: typeof ApiPublicHooksHunterScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -315,6 +336,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHooksHunterScanRoute: ApiPublicHooksHunterScanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
