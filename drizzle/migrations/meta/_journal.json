@@ -8,6 +8,13 @@
       "when": 1789317248163,
       "tag": "0000_hunter2x_phase2_core_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789318947604,
+      "tag": "0001_phase2_schema_hardening",
+      "breakpoints": true
     }
   ]
 }
