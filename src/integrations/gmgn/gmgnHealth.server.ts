@@ -95,7 +95,7 @@ export async function recordSuccess(
 export async function recordFailure(
   capability: GmgnCapability,
   message: string,
-  options: { capabilityUnavailable?: boolean; terminal?: boolean } = {},
+  options: { capabilityUnavailable?: boolean; terminal?: boolean; rateLimited?: boolean } = {},
 ): Promise<void> {
   const { data } = await supabaseAdmin
     .from("provider_integrations")

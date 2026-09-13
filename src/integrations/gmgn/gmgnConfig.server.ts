@@ -14,18 +14,25 @@ export const FRESHNESS = {
 
 export const LIMITS = {
   /** Minimum gap between two provider requests from one worker. */
-  MIN_REQUEST_INTERVAL_MS: 250,
+  MIN_REQUEST_INTERVAL_MS: 1_000,
   REQUEST_TIMEOUT_MS: 15_000,
   MAX_RETRIES: 2,
   /** Bounded work per scan run. */
   DISCOVERY_LIMIT: 50,
   SMART_MONEY_LIMIT: 50,
-  TOKEN_REFRESH_PER_RUN: 8,
+  TOKEN_REFRESH_PER_RUN: 5,
   CANDIDATES_PER_USER: 5,
   /** Consecutive provider failures before the scanner circuit-breaks. */
   FAILURE_CIRCUIT_BREAK: 5,
   CIRCUIT_PAUSE_MS: 10 * 60 * 1000,
+  /** Provider-signalled rate limiting parks the integration immediately. */
+  RATE_LIMIT_PAUSE_MS: 5 * 60 * 1000,
 } as const;
+
+/** Provider rate limiting is reported by message, not only by HTTP 429. */
+export function isRateLimitMessage(message: string): boolean {
+  return /rate.?limit|too many requests|banned/i.test(message);
+}
 
 export function getGmgnApiKey(): string | null {
   const key = process.env["GMGN_API_KEY"];
