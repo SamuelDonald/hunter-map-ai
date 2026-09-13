@@ -50,6 +50,7 @@ async function logSystem(
   metadata: Record<string, unknown> = {},
   userId: string | null = null,
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await admin().from("system_logs").insert({ user_id: userId, level, component: "SCANNER", event, message, metadata });
 }
 
