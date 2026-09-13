@@ -10,33 +10,167 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiAgentRouteImport } from './routes/ai-agent'
+import { Route as HunterMapRouteImport } from './routes/hunter-map'
+import { Route as PositionsRouteImport } from './routes/positions'
+import { Route as RiskRouteImport } from './routes/risk'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SmartMoneyRouteImport } from './routes/smart-money'
+import { Route as StrategiesRouteImport } from './routes/strategies'
+import { Route as TokenScannerRouteImport } from './routes/token-scanner'
+import { Route as TradeHistoryRouteImport } from './routes/trade-history'
+import { Route as WalletRouteImport } from './routes/wallet'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiAgentRoute = AiAgentRouteImport.update({
+  id: '/ai-agent',
+  path: '/ai-agent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HunterMapRoute = HunterMapRouteImport.update({
+  id: '/hunter-map',
+  path: '/hunter-map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PositionsRoute = PositionsRouteImport.update({
+  id: '/positions',
+  path: '/positions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiskRoute = RiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SmartMoneyRoute = SmartMoneyRouteImport.update({
+  id: '/smart-money',
+  path: '/smart-money',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StrategiesRoute = StrategiesRouteImport.update({
+  id: '/strategies',
+  path: '/strategies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TokenScannerRoute = TokenScannerRouteImport.update({
+  id: '/token-scanner',
+  path: '/token-scanner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TradeHistoryRoute = TradeHistoryRouteImport.update({
+  id: '/trade-history',
+  path: '/trade-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-agent': typeof AiAgentRoute
+  '/hunter-map': typeof HunterMapRoute
+  '/positions': typeof PositionsRoute
+  '/risk': typeof RiskRoute
+  '/settings': typeof SettingsRoute
+  '/smart-money': typeof SmartMoneyRoute
+  '/strategies': typeof StrategiesRoute
+  '/token-scanner': typeof TokenScannerRoute
+  '/trade-history': typeof TradeHistoryRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-agent': typeof AiAgentRoute
+  '/hunter-map': typeof HunterMapRoute
+  '/positions': typeof PositionsRoute
+  '/risk': typeof RiskRoute
+  '/settings': typeof SettingsRoute
+  '/smart-money': typeof SmartMoneyRoute
+  '/strategies': typeof StrategiesRoute
+  '/token-scanner': typeof TokenScannerRoute
+  '/trade-history': typeof TradeHistoryRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-agent': typeof AiAgentRoute
+  '/hunter-map': typeof HunterMapRoute
+  '/positions': typeof PositionsRoute
+  '/risk': typeof RiskRoute
+  '/settings': typeof SettingsRoute
+  '/smart-money': typeof SmartMoneyRoute
+  '/strategies': typeof StrategiesRoute
+  '/token-scanner': typeof TokenScannerRoute
+  '/trade-history': typeof TradeHistoryRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ai-agent'
+    | '/hunter-map'
+    | '/positions'
+    | '/risk'
+    | '/settings'
+    | '/smart-money'
+    | '/strategies'
+    | '/token-scanner'
+    | '/trade-history'
+    | '/wallet'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ai-agent'
+    | '/hunter-map'
+    | '/positions'
+    | '/risk'
+    | '/settings'
+    | '/smart-money'
+    | '/strategies'
+    | '/token-scanner'
+    | '/trade-history'
+    | '/wallet'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai-agent'
+    | '/hunter-map'
+    | '/positions'
+    | '/risk'
+    | '/settings'
+    | '/smart-money'
+    | '/strategies'
+    | '/token-scanner'
+    | '/trade-history'
+    | '/wallet'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiAgentRoute: typeof AiAgentRoute
+  HunterMapRoute: typeof HunterMapRoute
+  PositionsRoute: typeof PositionsRoute
+  RiskRoute: typeof RiskRoute
+  SettingsRoute: typeof SettingsRoute
+  SmartMoneyRoute: typeof SmartMoneyRoute
+  StrategiesRoute: typeof StrategiesRoute
+  TokenScannerRoute: typeof TokenScannerRoute
+  TradeHistoryRoute: typeof TradeHistoryRoute
+  WalletRoute: typeof WalletRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +182,91 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai-agent': {
+      id: '/ai-agent'
+      path: '/ai-agent'
+      fullPath: '/ai-agent'
+      preLoaderRoute: typeof AiAgentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hunter-map': {
+      id: '/hunter-map'
+      path: '/hunter-map'
+      fullPath: '/hunter-map'
+      preLoaderRoute: typeof HunterMapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/positions': {
+      id: '/positions'
+      path: '/positions'
+      fullPath: '/positions'
+      preLoaderRoute: typeof PositionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risk': {
+      id: '/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof RiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/smart-money': {
+      id: '/smart-money'
+      path: '/smart-money'
+      fullPath: '/smart-money'
+      preLoaderRoute: typeof SmartMoneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/strategies': {
+      id: '/strategies'
+      path: '/strategies'
+      fullPath: '/strategies'
+      preLoaderRoute: typeof StrategiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/token-scanner': {
+      id: '/token-scanner'
+      path: '/token-scanner'
+      fullPath: '/token-scanner'
+      preLoaderRoute: typeof TokenScannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trade-history': {
+      id: '/trade-history'
+      path: '/trade-history'
+      fullPath: '/trade-history'
+      preLoaderRoute: typeof TradeHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiAgentRoute: AiAgentRoute,
+  HunterMapRoute: HunterMapRoute,
+  PositionsRoute: PositionsRoute,
+  RiskRoute: RiskRoute,
+  SettingsRoute: SettingsRoute,
+  SmartMoneyRoute: SmartMoneyRoute,
+  StrategiesRoute: StrategiesRoute,
+  TokenScannerRoute: TokenScannerRoute,
+  TradeHistoryRoute: TradeHistoryRoute,
+  WalletRoute: WalletRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
