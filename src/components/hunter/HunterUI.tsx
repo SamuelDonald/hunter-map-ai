@@ -77,7 +77,10 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    supabase.auth
+      .getUser()
+      .then(({ data }) => setEmail(data.user?.email ?? null))
+      .catch(() => setEmail(null));
   }, []);
 
   async function signOut() {
@@ -248,7 +251,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   useHunterRealtime();
 
   useEffect(() => {
-    void bootstrap().then(() => queryClient.invalidateQueries());
+    // A failed account bootstrap must never take the whole shell down.
+    bootstrap()
+      .then(() => queryClient.invalidateQueries())
+      .catch((error: unknown) => console.error("[hunter] bootstrap failed", error));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

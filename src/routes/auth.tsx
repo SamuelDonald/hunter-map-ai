@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
+  // The protected layout redirects here on the client only, so rendering this
+  // page client-side too avoids a server/client hydration mismatch that blanks
+  // the screen in production builds.
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Sign in — HUNTER 2X" },
