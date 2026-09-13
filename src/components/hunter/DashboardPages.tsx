@@ -610,18 +610,96 @@ export function WalletPage() {
   );
 }
 
+const ago = (iso: string | null | undefined) => {
+  if (!iso) return "never";
+  const seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m ago`;
+  return `${Math.round(seconds / 3600)}h ago`;
+};
+
+/** Analysis only — this panel explains scores, it never places orders. */
+function CandidateAnalysisPanel() {
+  const { data, isLoading } = useCandidateAnalysis();
+  const candidates = data?.candidates ?? [];
+  return (
+    <Panel title="HUNTER SCORE ANALYSIS" aside={<span className="text-xs text-muted-foreground">Analysis only — never executes</span>}>
+      {isLoading ? null : candidates.length === 0 ? (
+        <NotConnected detail="No scored tokens yet. The scanner fills this once the intelligence feed returns data." />
+      ) : (
+        <div className="mt-3 space-y-2">
+          {candidates.map((c) => (
+            <div key={c.token_id} className="rounded-lg border border-border/60 bg-card/40 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-semibold">${c.symbol ?? c.address.slice(0, 6)}</span>
+                <span className="flex items-center gap-3 text-xs">
+                  <span className="text-muted-foreground">{usd(c.price)}</span>
+                  <span className="text-muted-foreground">LIQ {money(c.liquidity)}</span>
+                  <b>{c.evaluation.hunter_score === null ? "—" : c.evaluation.hunter_score}</b>
+                  <span className={cn("top-status", c.evaluation.signal === "BUY" ? "text-positive" : c.evaluation.signal === "WATCH" ? "text-ai" : "text-muted-foreground")}>
+                    <Dot tone={c.evaluation.signal === "BUY" ? "positive" : c.evaluation.signal === "WATCH" ? "ai" : "muted"} />
+                    {c.evaluation.signal}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {c.evaluation.reason_codes.slice(0, 8).map((code) => (
+                  <span key={code} className="rounded border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">{code}</span>
+                ))}
+                {c.evaluation.risk_flags.map((flag) => (
+                  <span key={flag} className="rounded border border-warning/50 px-1.5 py-0.5 text-[10px] text-warning">{flag}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 export function AIAgentPage() {
   const { data: providers } = useProviderStates();
+  const { data: health } = useIntegrationHealth();
   const state = (name: string) => providers?.find((p) => p.name === name)?.status.replace(/_/g, " ") ?? "NOT CONFIGURED";
+  const gmgn = health?.gmgn;
+  const capabilities = Object.entries(gmgn?.capabilities ?? {});
   return (
     <div className="page">
-      <PageHeader title="HUNTER AI" subtitle="Engine activity, provider health and scoring transparency" />
+      <PageHeader title="HUNTER AI" subtitle="Engine activity, live intelligence health and scoring transparency" />
       <div className="grid gap-4 md:grid-cols-3">
-        <MetricCard label="MARKET DATA" value={state("MARKET_DATA")} trend="Token prices and liquidity" icon={Sparkles} />
-        <MetricCard label="TOKEN INTELLIGENCE" value={state("TOKEN_INTELLIGENCE")} trend="Holder and safety analysis" icon={BrainCircuit} />
-        <MetricCard label="EXECUTION" value={state("GMGN")} trend="Live execution provider" icon={Bot} />
+        <MetricCard
+          label="GMGN INTELLIGENCE"
+          value={(gmgn?.status ?? "NOT CONFIGURED").replace(/_/g, " ")}
+          trend={gmgn?.latency_ms ? `${gmgn.latency_ms} ms · success ${ago(gmgn.last_success_at)}` : "No successful call yet"}
+          icon={Sparkles}
+        />
+        <MetricCard
+          label="MARKET DATA"
+          value={health?.freshness.market_data_stale === false ? "LIVE" : "STALE"}
+          trend={`${health?.freshness.tokens_tracked ?? 0} tokens · updated ${ago(health?.freshness.last_market_update)}`}
+          icon={BrainCircuit}
+        />
+        <MetricCard label="EXECUTION" value={state("LIVE_EXECUTION")} trend="Paper execution only — live is not configured" icon={Bot} />
       </div>
-      <div className="mt-4"><AIActivityFeed /></div>
+      {gmgn?.last_error ? (
+        <p className="mt-3 rounded-lg border border-warning/40 bg-warning/5 p-3 text-xs text-warning">
+          Last provider error ({ago(gmgn.last_error_at)}): {gmgn.last_error}
+        </p>
+      ) : null}
+      {capabilities.length ? (
+        <div className="mt-3 flex flex-wrap gap-1">
+          {capabilities.map(([name, value]) => (
+            <span key={name} className={cn("rounded border px-1.5 py-0.5 text-[10px]", value === "AVAILABLE" ? "border-positive/50 text-positive" : "border-border/60 text-muted-foreground")}>
+              {name.replace(/_/g, " ")} {value}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      <div className="mt-4 grid gap-4 2xl:grid-cols-2">
+        <CandidateAnalysisPanel />
+        <AIActivityFeed />
+      </div>
     </div>
   );
 }
