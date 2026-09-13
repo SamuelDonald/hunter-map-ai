@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import type { BotSessionRow, BotState, BotStatusRow } from "./types";
 
 /** Allowed transitions for the server-side bot state machine. */
@@ -20,7 +22,7 @@ export const TRADING_STATES: BotState[] = ["SCANNING", "ANALYZING", "READY", "TR
 
 export type BotSnapshot = { status: BotStatusRow | null; session: BotSessionRow | null };
 
-async function loadStatus(supabase: import("./risk-engine.server").Client, userId: string) {
+async function loadStatus(supabase: SupabaseClient<Database>, userId: string) {
   const { data } = await supabase.from("bot_status").select("*").eq("user_id", userId).maybeSingle();
   return data;
 }
