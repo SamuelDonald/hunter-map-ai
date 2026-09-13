@@ -108,7 +108,10 @@ export async function recordFailure(
     ...(row?.capabilities ?? {}),
     ...(options.capabilityUnavailable ? { [capability]: "UNAVAILABLE" as CapabilityState } : {}),
   };
-  const breaker = options.terminal || failures >= LIMITS.FAILURE_CIRCUIT_BREAK;
+  // Provider-signalled rate limiting parks the integration at once: continuing
+  // to call a throttled provider only extends the block.
+  const pauseMs = options.rateLimited ? LIMITS.RATE_LIMIT_PAUSE_MS : LIMITS.CIRCUIT_PAUSE_MS;
+  const breaker = options.terminal || options.rateLimited || failures >= LIMITS.FAILURE_CIRCUIT_BREAK;
   const status: IntegrationStatus = options.terminal
     ? "ERROR"
     : row?.last_success_at
