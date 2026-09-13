@@ -66,7 +66,7 @@ async function once<T>(
         Accept: "application/json",
         ...(body ? { "Content-Type": "application/json" } : {}),
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(body) : null,
       signal: controller.signal,
     });
     const latencyMs = Date.now() - started;
