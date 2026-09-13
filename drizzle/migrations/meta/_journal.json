@@ -1,5 +1,13 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789317248163,
+      "tag": "0000_hunter2x_phase2_core_schema",
+      "breakpoints": true
+    }
+  ]
 }
