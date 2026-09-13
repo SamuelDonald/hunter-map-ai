@@ -294,10 +294,24 @@ async function persistSignals(
   const { data: tokens } = await admin().from("tokens").select("id, address").in("address", addresses);
   const tokenIdByAddress = new Map((tokens ?? []).map((t) => [t.address, t.id]));
 
-  const rows = derived
+  const candidates = derived
     .filter((s) => tokenIdByAddress.has(s.tokenAddress))
     .slice(0, 40)
-    .map((s) => ({
+    // Per-user provider id keeps the global (source, provider_signal_id) dedupe intact.
+    .map((s) => ({ signal: s, providerSignalId: `${s.providerSignalId}:${account.userId}` }));
+  if (candidates.length === 0) return;
+
+  // Explicit de-duplication: the same provider event must never be stored twice.
+  const { data: known } = await admin()
+    .from("signals")
+    .select("provider_signal_id")
+    .eq("source", "GMGN")
+    .in("provider_signal_id", candidates.map((c) => c.providerSignalId));
+  const knownIds = new Set((known ?? []).map((row) => row.provider_signal_id));
+
+  const rows = candidates
+    .filter((c) => !knownIds.has(c.providerSignalId))
+    .map(({ signal: s, providerSignalId }) => ({
       user_id: account.userId,
       token_id: tokenIdByAddress.get(s.tokenAddress) as string,
       signal_type: s.signalType,
@@ -308,16 +322,13 @@ async function persistSignals(
       source: "GMGN" as const,
       status: "NEW" as const,
       metadata: s.metadata,
-      // Per-user provider id keeps the global (source, provider_signal_id) dedupe intact.
-      provider_signal_id: `${s.providerSignalId}:${account.userId}`,
+      provider_signal_id: providerSignalId,
     }));
   if (rows.length === 0) return;
 
-  const { error, count } = await admin()
-    .from("signals")
-    .upsert(rows as never[], { onConflict: "source,provider_signal_id", ignoreDuplicates: true, count: "exact" });
+  const { error } = await admin().from("signals").insert(rows as never[]);
   if (error) report.errors.push(`SIGNALS: ${error.message}`);
-  else report.signals_created += count ?? 0;
+  else report.signals_created += rows.length;
 }
 
 async function manageOpenPositions(account: ActiveAccount, params: StrategyParametersRow, report: ScanReport) {
