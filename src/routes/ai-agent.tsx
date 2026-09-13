@@ -1,0 +1,2 @@
+import { createFileRoute } from "@tanstack/react-router"; import { AIAgentPage } from "@/components/hunter/DashboardPages";
+export const Route=createFileRoute("/ai-agent")({head:()=>({meta:[{title:"AI Agent — HUNTER 2X"},{name:"description",content:"Preview simulated HUNTER AI activity."},{property:"og:title",content:"AI Agent — HUNTER 2X"},{property:"og:description",content:"A frontend-only autonomous intelligence activity stream."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:AIAgentPage});

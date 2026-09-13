@@ -1,0 +1,2 @@
+import { createFileRoute } from "@tanstack/react-router"; import { HistoryPage } from "@/components/hunter/DashboardPages";
+export const Route=createFileRoute("/trade-history")({head:()=>({meta:[{title:"Trade History — HUNTER 2X"},{name:"description",content:"Review simulated paper trading outcomes."},{property:"og:title",content:"Trade History — HUNTER 2X"},{property:"og:description",content:"Demo strategy results, win rate and trade records."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:HistoryPage});

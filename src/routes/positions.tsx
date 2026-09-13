@@ -1,0 +1,2 @@
+import { createFileRoute } from "@tanstack/react-router"; import { PositionsPage } from "@/components/hunter/DashboardPages";
+export const Route=createFileRoute("/positions")({head:()=>({meta:[{title:"Positions — HUNTER 2X"},{name:"description",content:"Monitor simulated open crypto positions."},{property:"og:title",content:"Positions — HUNTER 2X"},{property:"og:description",content:"Paper positions, risk levels and performance charts."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:PositionsPage});
