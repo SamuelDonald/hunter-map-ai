@@ -312,6 +312,14 @@ export function RiskPanel() {
                 onChange={(e) => setPatch((p) => ({ ...p, [key]: Number(e.target.value) }))} />
             </div>
           ))}
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 px-3 py-2 md:col-span-2">
+            <div>
+              <Label htmlFor="kill_switch">Kill switch</Label>
+              <p className="text-xs text-muted-foreground">Blocks every new order regardless of strategy settings.</p>
+            </div>
+            <Switch id="kill_switch" checked={killSwitch}
+              onCheckedChange={(v) => setPatch((p) => ({ ...p, kill_switch: v }))} />
+          </div>
         </div>
         <div className="mt-6 flex gap-3">
           <Button disabled={busy || Object.keys(patch).length === 0} onClick={() => void onSave()}>Save limits</Button>
