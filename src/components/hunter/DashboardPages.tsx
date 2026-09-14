@@ -21,7 +21,7 @@ import {
 } from "./HunterUI";
 import {
   useCandidateAnalysis, useIntegrationHealth, usePortfolio, usePositions, useProviderStates, useRiskEvents,
-  useRiskSettings, useSmartMoney, useStrategies, useSystemLogs, useTokens, useTrades,
+  useRiskSettings, useSmartMoney, useSolanaWallet, useStrategies, useSystemLogs, useTokens, useTrades,
 } from "./hooks";
 
 const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
@@ -598,14 +598,184 @@ export function RiskPage() {
   );
 }
 
+const walletTone = (state: string) =>
+  state === "READY" ? "positive" : state === "LOW_BALANCE" || state === "BLOCKED" ? "warning" : state === "ERROR" ? "negative" : "muted";
+
+const txTone = (status: string) =>
+  status === "CONFIRMED" || status === "FINALIZED" ? "positive"
+    : status === "FAILED" || status === "REJECTED" ? "negative"
+      : status === "SUBMITTED_UNKNOWN" ? "warning" : "ai";
+
+/** Execution wallet — public metadata only. Keys never leave the server. */
+function ExecutionWalletPanel() {
+  const { data, isLoading } = useSolanaWallet();
+  const w = data?.wallet;
+  const state = w?.state ?? "NOT_CONFIGURED";
+  return (
+    <Panel
+      title="EXECUTION WALLET"
+      aside={
+        <span className="top-status text-muted-foreground">
+          <Dot tone={walletTone(state)} /> {state.replace(/_/g, " ")}
+        </span>
+      }
+    >
+      {isLoading ? (
+        <p className="p-4 text-xs text-muted-foreground">Reading on-chain state…</p>
+      ) : (
+        <>
+          <div className="mt-3 rounded-lg border border-border/60 bg-card/40 p-3">
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Public address</span>
+            <p className="mt-1 break-all font-mono text-xs">
+              {w?.address ?? "No execution wallet configured on the server"}
+            </p>
+          </div>
+          <div className="data-grid">
+            <span>Network<b>{data?.network.cluster ?? "—"}</b></span>
+            <span>SOL balance<b>{w?.solBalance === null || w?.solBalance === undefined ? "—" : w.solBalance.toFixed(6)}</b></span>
+            <span>Min reserve<b>{w ? w.minSolReserve.toFixed(4) : "—"}</b></span>
+            <span>Token balances<b>{w?.tokenBalances.length ?? 0}</b></span>
+            <span>Transactions<b>{w?.transactionCount ?? 0}</b></span>
+            <span>RPC<b>{w?.rpc.status ?? "—"} {w?.rpc.latencyMs ? `${w.rpc.latencyMs}ms` : ""}</b></span>
+            <span>Slot<b>{w?.rpc.slot ?? "—"}</b></span>
+            <span>Last sync<b>{ago(w?.lastSyncAt)}</b></span>
+          </div>
+          {w?.tokenBalances.length ? (
+            <div className="table-scroll mt-3">
+              <table className="data-table">
+                <thead><tr><th>Mint</th><th>Amount</th><th>Program</th></tr></thead>
+                <tbody>
+                  {w.tokenBalances.map((t) => (
+                    <tr key={t.tokenAccount}>
+                      <td className="font-mono text-xs">{t.mint.slice(0, 10)}…</td>
+                      <td>{t.uiAmount}</td>
+                      <td className="text-muted-foreground">{t.program}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+          {w?.reasons.length ? (
+            <div className="mt-3 flex flex-wrap gap-1">
+              {w.reasons.map((r) => (
+                <span key={r} className="rounded border border-warning/50 px-1.5 py-0.5 text-[10px] text-warning">{r.replace(/_/g, " ")}</span>
+              ))}
+            </div>
+          ) : null}
+          <p className="mt-3 text-[11px] text-muted-foreground">
+            The execution wallet signs only on the server. Private keys and seed phrases are never stored in the
+            database or sent to this page, and there is no export function.
+          </p>
+        </>
+      )}
+    </Panel>
+  );
+}
+
+/** Every gate that must pass before a live transaction can even be attempted. */
+function ExecutionReadinessPanel() {
+  const { data } = useSolanaWallet();
+  const readiness = data?.readiness;
+  return (
+    <Panel
+      title="EXECUTION AVAILABILITY"
+      aside={
+        <span className="top-status text-muted-foreground">
+          <Dot tone={readiness?.liveExecutionAvailable ? "positive" : "muted"} />
+          {readiness?.liveExecutionAvailable ? "LIVE AVAILABLE" : "LIVE EXECUTION — NOT CONFIGURED"}
+        </span>
+      }
+    >
+      <div className="data-grid">
+        <span>Cluster<b>{readiness?.cluster ?? "—"}</b></span>
+        <span>Emergency block<b>{readiness?.emergencyBlock ?? "—"}</b></span>
+        <span>Infrastructure signing<b>{readiness?.signingAllowed ? "ALLOWED (devnet)" : "BLOCKED"}</b></span>
+      </div>
+      <div className="mt-3 space-y-1">
+        {(readiness?.gates ?? []).map((g) => (
+          <div key={g.name} className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/40 px-3 py-2">
+            <span className="flex items-center gap-2 text-xs">
+              <Dot tone={g.ok ? "positive" : "muted"} /> {g.name.replace(/_/g, " ")}
+            </span>
+            <span className="text-[11px] text-muted-foreground">{g.detail}</span>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+/** Transaction history tied to orders, signatures and confirmation state. */
+function SolanaTransactionTable() {
+  const { data } = useSolanaWallet();
+  const rows = data?.transactions ?? [];
+  return (
+    <Panel title="SOLANA TRANSACTIONS" aside={<span className="text-xs text-muted-foreground">{rows.length} records</span>}>
+      {rows.length === 0 ? (
+        <NotConnected title="NO TRANSACTIONS YET" detail="Transactions appear here once the execution wallet is configured and a transaction is submitted on the configured network." />
+      ) : (
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr><th>Purpose</th><th>Status</th><th>Confirmation</th><th>Reconciled</th><th>Fee</th><th>Network</th><th>Signature</th><th>Time</th></tr>
+            </thead>
+            <tbody>
+              {rows.map((tx) => (
+                <tr key={tx.id}>
+                  <td>{tx.purpose.replace(/_/g, " ")}</td>
+                  <td><span className="top-status"><Dot tone={txTone(tx.status)} /> {tx.status.replace(/_/g, " ")}</span></td>
+                  <td className="text-muted-foreground">{tx.confirmation_level ?? "—"}</td>
+                  <td className="text-muted-foreground">{tx.reconciliation_status}</td>
+                  <td>{tx.fee_lamports === null ? "—" : `${(tx.fee_lamports / 1e9).toFixed(9)} SOL`}</td>
+                  <td className="text-muted-foreground">{tx.cluster}</td>
+                  <td className="font-mono text-xs">
+                    {tx.signature ? (
+                      tx.explorer_url ? (
+                        <a className="text-ai hover:underline" href={tx.explorer_url} target="_blank" rel="noreferrer">{tx.signature.slice(0, 10)}…</a>
+                      ) : (
+                        `${tx.signature.slice(0, 10)}…`
+                      )
+                    ) : (
+                      "—"
+                    )}
+                    {tx.error_message ? <div className="text-[10px] text-negative">{tx.error_message}</div> : null}
+                  </td>
+                  <td className="text-muted-foreground">{ago(tx.created_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 export function WalletPage() {
+  const { data } = useSolanaWallet();
   return (
     <div className="page">
-      <PageHeader title="WALLET" subtitle="Wallet connectivity arrives in a later phase — nothing is connected" />
+      <PageHeader
+        title="WALLET"
+        subtitle="Execution wallet state read from Solana — no keys, no seed phrases, no export"
+        action={<LiveNotConfigured />}
+      />
       <div className="grid gap-4 2xl:grid-cols-2">
-        <WalletPanel />
-        <WalletPanel vault />
+        <ExecutionWalletPanel />
+        <ExecutionReadinessPanel />
       </div>
+      <div className="mt-4">
+        <SolanaTransactionTable />
+      </div>
+      <div className="mt-4 grid gap-4 2xl:grid-cols-2">
+        <WalletPanel />
+      </div>
+      {data?.network.rpc_configured === false ? (
+        <p className="mt-3 rounded-lg border border-border/60 bg-card/40 p-3 text-xs text-muted-foreground">
+          Using the public {data.network.cluster} endpoint. A dedicated RPC endpoint can be configured on the server.
+        </p>
+      ) : null}
     </div>
   );
 }
