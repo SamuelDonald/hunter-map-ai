@@ -121,8 +121,12 @@ export class PaperExecutionProvider implements ExecutionProvider {
 }
 
 /**
- * GMGN execution — architecture only. Phase 2 must not be able to move real
- * money, so every method refuses until the integration is completed.
+ * GMGN execution — architecture only. It never builds, signs or submits a
+ * transaction itself: when GMGN's signed execution routes are implemented this
+ * provider will only *request* execution and hand the request to
+ * SolanaTransactionService, which owns the whole transaction lifecycle
+ * (validate -> build -> simulate -> risk -> sign -> submit -> confirm ->
+ * reconcile). Until then every method refuses, so no real money can move.
  */
 export class GMGNExecutionProvider implements ExecutionProvider {
   readonly name = "GMGN" as const;
@@ -130,7 +134,7 @@ export class GMGNExecutionProvider implements ExecutionProvider {
     return "NOT_CONFIGURED";
   }
   async createOrder(): Promise<ProviderResult<ExecutionResult>> {
-    return notConfigured("GMGN execution");
+    return notConfigured("GMGN execution (signed trade routes not implemented)");
   }
   async cancelOrder(): Promise<ProviderResult<{ cancelled: boolean }>> {
     return notConfigured("GMGN execution");

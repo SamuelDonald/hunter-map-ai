@@ -133,6 +133,84 @@ export type Database = {
           },
         ]
       }
+      execution_controls: {
+        Row: {
+          emergency_block: string
+          id: string
+          live_execution_enabled: boolean
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          emergency_block?: string
+          id?: string
+          live_execution_enabled?: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          emergency_block?: string
+          id?: string
+          live_execution_enabled?: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      execution_wallets: {
+        Row: {
+          chain: string
+          cluster: string
+          created_at: string
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+          metadata: Json
+          min_sol_reserve: number
+          public_address: string | null
+          purpose: string
+          sol_balance: number | null
+          status: string
+          transaction_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chain?: string
+          cluster: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          metadata?: Json
+          min_sol_reserve?: number
+          public_address?: string | null
+          purpose: string
+          sol_balance?: number | null
+          status?: string
+          transaction_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chain?: string
+          cluster?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          metadata?: Json
+          min_sol_reserve?: number
+          public_address?: string | null
+          purpose?: string
+          sol_balance?: number | null
+          status?: string
+          transaction_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_leases: {
         Row: {
           holder: string | null
@@ -535,6 +613,7 @@ export type Database = {
           max_positions: number
           max_slippage: number
           max_trade_loss: number
+          min_sol_reserve: number
           updated_at: string
           user_id: string
         }
@@ -548,6 +627,7 @@ export type Database = {
           max_positions?: number
           max_slippage?: number
           max_trade_loss?: number
+          min_sol_reserve?: number
           updated_at?: string
           user_id: string
         }
@@ -561,6 +641,7 @@ export type Database = {
           max_positions?: number
           max_slippage?: number
           max_trade_loss?: number
+          min_sol_reserve?: number
           updated_at?: string
           user_id?: string
         }
@@ -618,6 +699,125 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "signals_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solana_transactions: {
+        Row: {
+          blockhash: string | null
+          cluster: string
+          compute_units_consumed: number | null
+          confirmation_level: string | null
+          confirmed_at: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          execution_provider: string
+          fee_lamports: number | null
+          id: string
+          idempotency_key: string
+          order_id: string | null
+          position_id: string | null
+          purpose: string
+          reconciled_at: string | null
+          reconciliation: Json
+          reconciliation_status: string
+          signature: string | null
+          simulation: Json
+          slot: number | null
+          status: string
+          strategy_id: string | null
+          submitted_at: string | null
+          token_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blockhash?: string | null
+          cluster: string
+          compute_units_consumed?: number | null
+          confirmation_level?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          execution_provider: string
+          fee_lamports?: number | null
+          id?: string
+          idempotency_key: string
+          order_id?: string | null
+          position_id?: string | null
+          purpose?: string
+          reconciled_at?: string | null
+          reconciliation?: Json
+          reconciliation_status?: string
+          signature?: string | null
+          simulation?: Json
+          slot?: number | null
+          status?: string
+          strategy_id?: string | null
+          submitted_at?: string | null
+          token_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blockhash?: string | null
+          cluster?: string
+          compute_units_consumed?: number | null
+          confirmation_level?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          execution_provider?: string
+          fee_lamports?: number | null
+          id?: string
+          idempotency_key?: string
+          order_id?: string | null
+          position_id?: string | null
+          purpose?: string
+          reconciled_at?: string | null
+          reconciliation?: Json
+          reconciliation_status?: string
+          signature?: string | null
+          simulation?: Json
+          slot?: number | null
+          status?: string
+          strategy_id?: string | null
+          submitted_at?: string | null
+          token_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solana_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solana_transactions_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solana_transactions_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solana_transactions_token_id_fkey"
             columns: ["token_id"]
             isOneToOne: false
             referencedRelation: "tokens"

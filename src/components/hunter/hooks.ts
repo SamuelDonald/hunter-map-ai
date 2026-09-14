@@ -18,6 +18,7 @@ import {
 } from "@/lib/hunter/trading.functions";
 import { getHunterMap, listSmartMoney, listTokens, type TokenFilters } from "@/lib/hunter/market.functions";
 import { analyzeCandidates, getIntegrationHealth } from "@/lib/hunter/integrations.functions";
+import { getSolanaWalletOverview } from "@/lib/hunter/solana.functions";
 
 /** Keeps queries fresh from Realtime instead of polling. */
 export function useHunterRealtime() {
@@ -139,4 +140,9 @@ export function useHunterMapData(filters: { minHunterScore?: number; minLiquidit
 export function useSmartMoney() {
   const fn = useServerFn(listSmartMoney);
   return useQuery({ queryKey: ["smart-money"], queryFn: () => fn() });
+}
+
+export function useSolanaWallet() {
+  const fn = useServerFn(getSolanaWalletOverview);
+  return useQuery({ queryKey: ["solana-wallet"], queryFn: () => fn(), refetchInterval: 30_000 });
 }
