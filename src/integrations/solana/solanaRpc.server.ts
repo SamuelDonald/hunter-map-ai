@@ -189,8 +189,8 @@ export class SolanaRpcProvider {
       const err = result.value.err;
       return {
         success: err === null,
-        error: err === null ? null : JSON.stringify(err),
-        errorCode: err === null ? null : classifySimulationError(JSON.stringify(err), result.value.logs ?? []),
+        error: err === null ? null : safeStringify(err),
+        errorCode: err === null ? null : classifySimulationError(safeStringify(err), result.value.logs ?? []),
         logs: (result.value.logs ?? []).map(String),
         unitsConsumed: result.value.unitsConsumed === undefined ? null : Number(result.value.unitsConsumed),
       };
@@ -221,7 +221,7 @@ export class SolanaRpcProvider {
         found: status !== null,
         confirmationStatus: status?.confirmationStatus ?? null,
         slot: status ? Number(status.slot) : null,
-        err: status?.err ? JSON.stringify(status.err) : null,
+        err: status?.err ? safeStringify(status.err) : null,
       }));
     });
   }
@@ -243,7 +243,7 @@ export class SolanaRpcProvider {
         found: true,
         slot: Number(result.slot),
         fee: result.meta ? Number(result.meta.fee) : null,
-        err: result.meta?.err ? JSON.stringify(result.meta.err) : null,
+        err: result.meta?.err ? safeStringify(result.meta.err) : null,
         logs: (result.meta?.logMessages ?? []).map(String),
         preBalances: (result.meta?.preBalances ?? []).map(Number),
         postBalances: (result.meta?.postBalances ?? []).map(Number),
@@ -268,6 +268,11 @@ export function getRpcProvider(): SolanaRpcProvider {
 
 export function toAddress(value: string): Address {
   return address(value);
+}
+
+/** RPC errors can contain bigints, which JSON.stringify refuses. */
+function safeStringify(value: unknown): string {
+  return JSON.stringify(value, (_key, val) => (typeof val === "bigint" ? val.toString() : val)) ?? "unknown";
 }
 
 function classifySimulationError(err: string, logs: string[]): string {
