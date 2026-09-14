@@ -64,6 +64,7 @@
       "devDependencies": {
         "@eslint/js": "^9.32.0",
         "@lovable.dev/vite-tanstack-config": "^2.20.0",
+        "@solana/surfpool": "^1.5.0",
         "@types/node": "^22.16.5",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
@@ -514,6 +515,14 @@
     "@solana/signers": ["@solana/signers@8.3.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@solana/signers/-/signers-8.3.0.tgz", { "dependencies": { "@solana/addresses": "8.3.0", "@solana/codecs-core": "8.3.0", "@solana/errors": "8.3.0", "@solana/instructions": "8.3.0", "@solana/keys": "8.3.0", "@solana/nominal-types": "8.3.0", "@solana/offchain-messages": "8.3.0", "@solana/transaction-messages": "8.3.0", "@solana/transactions": "8.3.0" }, "peerDependencies": { "typescript": ">=5.4.0" }, "optionalPeers": ["typescript"] }, "sha512-uNiJZV6npLBQ0jYsK5fmtemZ0igQ4HW9QR9t5qSxbxRa52yZjzX7zkSpFhQJsxvBCAUR2ppVmhanDeupPXf4Mw=="],
 
     "@solana/subscribable": ["@solana/subscribable@8.3.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@solana/subscribable/-/subscribable-8.3.0.tgz", { "dependencies": { "@solana/errors": "8.3.0", "@solana/promises": "8.3.0" }, "peerDependencies": { "typescript": ">=5.4.0" }, "optionalPeers": ["typescript"] }, "sha512-tLoGNOt19oUTxIoOaBxQRNxKJET/IXBx1NZkGD1lh4X8iNc6V0lY3MMIWjNvRivFIpzeWtWYxX/tAb27xpmcXg=="],
+
+    "@solana/surfpool": ["@solana/surfpool@1.5.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@solana/surfpool/-/surfpool-1.5.0.tgz", { "optionalDependencies": { "@solana/surfpool-darwin-arm64": "1.5.0", "@solana/surfpool-darwin-x64": "1.5.0", "@solana/surfpool-linux-x64-gnu": "1.5.0" }, "peerDependencies": { "@solana/kit": "^7.0.0", "@solana/kit-plugin-rpc": "^0.15.0", "@solana/kit-plugin-signer": "^0.13.0" }, "optionalPeers": ["@solana/kit", "@solana/kit-plugin-rpc", "@solana/kit-plugin-signer"] }, "sha512-smTwmZpron2Zf/EcxwcjlJ5cva+nnf4GWpHf7RJj8nEzA4XcHlCDFkO+Dwoe5mapHKelePqFeWpId7Q/7zxEOg=="],
+
+    "@solana/surfpool-darwin-arm64": ["@solana/surfpool-darwin-arm64@1.5.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@solana/surfpool-darwin-arm64/-/surfpool-darwin-arm64-1.5.0.tgz", { "os": "darwin", "cpu": "arm64" }, "sha512-RdjEN7WDAr1Vrp1CD+NAS3pwT//TJclX9zyxjhAMpmBofwDzlCO8/yqv2CbD77UOuB/y3UWz3MvEEHxZfetKsw=="],
+
+    "@solana/surfpool-darwin-x64": ["@solana/surfpool-darwin-x64@1.5.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@solana/surfpool-darwin-x64/-/surfpool-darwin-x64-1.5.0.tgz", { "os": "darwin", "cpu": "x64" }, "sha512-8ScgLVX32JX7HH0XkijZxlpsNAALuzaJQDUTjJ1aPazKzunliek27TP9ZkVzzBHypyiY59wpwNue9PUGnGKdIw=="],
+
+    "@solana/surfpool-linux-x64-gnu": ["@solana/surfpool-linux-x64-gnu@1.5.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@solana/surfpool-linux-x64-gnu/-/surfpool-linux-x64-gnu-1.5.0.tgz", { "os": "linux", "cpu": "x64" }, "sha512-d+wUCBdzw7U4inKoe+Lj7XlH8Nmd6A00IZOsG3R61NQbqhRVp7zFpVCCzV00RvgAOsSedkI87I6B4ehAuyGPAg=="],
 
     "@solana/sysvars": ["@solana/sysvars@8.3.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@solana/sysvars/-/sysvars-8.3.0.tgz", { "dependencies": { "@solana/accounts": "8.3.0", "@solana/codecs-core": "8.3.0", "@solana/codecs-data-structures": "8.3.0", "@solana/codecs-numbers": "8.3.0", "@solana/errors": "8.3.0", "@solana/rpc-types": "8.3.0" }, "peerDependencies": { "typescript": ">=5.4.0" }, "optionalPeers": ["typescript"] }, "sha512-SXnKqpV4pj3vLvcyBn8+jeVouu4Bbk0PTmHMknsig6edWcpmvAXkufcRdxgVy5t58pdSf1+GlJGEEhP5NR/0xA=="],
 
