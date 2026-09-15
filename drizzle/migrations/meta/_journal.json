@@ -43,6 +43,13 @@
       "when": 1789390676521,
       "tag": "0005_phase4_solana_execution_infrastructure",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789480375441,
+      "tag": "0006_phase5_trading_wallets",
+      "breakpoints": true
     }
   ]
 }
