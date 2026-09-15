@@ -133,7 +133,7 @@ export class PrivyCustodyProvider implements WalletCustodyProvider {
       const response = await fetch(url, {
         method,
         headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
+        body: body === undefined ? null : JSON.stringify(body),
         signal: controller.signal,
       });
       const text = await response.text();
