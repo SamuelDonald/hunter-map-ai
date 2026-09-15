@@ -251,6 +251,37 @@ export class SolanaRpcProvider {
     });
   }
 
+  /** Signature history for an address — used by deposit detection. */
+  async getSignaturesForAddress(
+    owner: string,
+    limit = 25,
+  ): Promise<RpcResult<{ signature: string; slot: number; blockTime: string | null; err: string | null; confirmationStatus: "processed" | "confirmed" | "finalized" | null }[]>> {
+    return this.call("getSignaturesForAddress", async () => {
+      const result = await this.rpc.getSignaturesForAddress(address(owner), { limit }).send();
+      return result.map((entry) => ({
+        signature: String(entry.signature),
+        slot: Number(entry.slot),
+        blockTime: entry.blockTime === null || entry.blockTime === undefined ? null : new Date(Number(entry.blockTime) * 1000).toISOString(),
+        err: entry.err ? safeStringify(entry.err) : null,
+        confirmationStatus: entry.confirmationStatus ?? null,
+      }));
+    });
+  }
+
+  /** Parsed transaction payload. The caller decides how to interpret it. */
+  async getParsedTransaction(signature: string): Promise<RpcResult<unknown>> {
+    return this.call("getParsedTransaction", async () => {
+      const result = await this.rpc
+        .getTransaction(toSignature(signature), {
+          maxSupportedTransactionVersion: 1 as 0,
+          encoding: "jsonParsed",
+          commitment: "confirmed",
+        })
+        .send();
+      return result as unknown;
+    });
+  }
+
   async health(): Promise<RpcHealth> {
     const slot = await this.getSlot();
     if (slot.ok) {

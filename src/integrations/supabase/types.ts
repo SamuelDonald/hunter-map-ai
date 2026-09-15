@@ -133,6 +133,36 @@ export type Database = {
           },
         ]
       }
+      connected_wallets: {
+        Row: {
+          address: string
+          chain: string
+          connected_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          wallet_name: string | null
+        }
+        Insert: {
+          address: string
+          chain?: string
+          connected_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          wallet_name?: string | null
+        }
+        Update: {
+          address?: string
+          chain?: string
+          connected_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          wallet_name?: string | null
+        }
+        Relationships: []
+      }
       execution_controls: {
         Row: {
           emergency_block: string
@@ -162,13 +192,19 @@ export type Database = {
           chain: string
           cluster: string
           created_at: string
+          custody_provider: string
+          first_live_trade_completed: boolean
           id: string
           last_error: string | null
           last_sync_at: string | null
+          live_execution_confirmed_at: string | null
+          live_execution_enabled: boolean
           metadata: Json
           min_sol_reserve: number
+          provider_wallet_id: string | null
           public_address: string | null
           purpose: string
+          reserved_capital: number
           sol_balance: number | null
           status: string
           transaction_count: number
@@ -179,13 +215,19 @@ export type Database = {
           chain?: string
           cluster: string
           created_at?: string
+          custody_provider?: string
+          first_live_trade_completed?: boolean
           id?: string
           last_error?: string | null
           last_sync_at?: string | null
+          live_execution_confirmed_at?: string | null
+          live_execution_enabled?: boolean
           metadata?: Json
           min_sol_reserve?: number
+          provider_wallet_id?: string | null
           public_address?: string | null
           purpose: string
+          reserved_capital?: number
           sol_balance?: number | null
           status?: string
           transaction_count?: number
@@ -196,13 +238,19 @@ export type Database = {
           chain?: string
           cluster?: string
           created_at?: string
+          custody_provider?: string
+          first_live_trade_completed?: boolean
           id?: string
           last_error?: string | null
           last_sync_at?: string | null
+          live_execution_confirmed_at?: string | null
+          live_execution_enabled?: boolean
           metadata?: Json
           min_sol_reserve?: number
+          provider_wallet_id?: string | null
           public_address?: string | null
           purpose?: string
+          reserved_capital?: number
           sol_balance?: number | null
           status?: string
           transaction_count?: number
@@ -1300,6 +1348,65 @@ export type Database = {
           },
         ]
       }
+      wallet_deposits: {
+        Row: {
+          amount: number
+          asset: string
+          block_time: string | null
+          cluster: string
+          confirmation_status: string
+          created_at: string
+          id: string
+          mint: string | null
+          recipient: string
+          sender: string | null
+          signature: string
+          slot: number | null
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          asset: string
+          block_time?: string | null
+          cluster: string
+          confirmation_status?: string
+          created_at?: string
+          id?: string
+          mint?: string | null
+          recipient: string
+          sender?: string | null
+          signature: string
+          slot?: number | null
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          asset?: string
+          block_time?: string | null
+          cluster?: string
+          confirmation_status?: string
+          created_at?: string
+          id?: string
+          mint?: string | null
+          recipient?: string
+          sender?: string | null
+          signature?: string
+          slot?: number | null
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_deposits_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "execution_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_watchlist: {
         Row: {
           created_at: string
@@ -1331,6 +1438,80 @@ export type Database = {
             columns: ["wallet_id"]
             isOneToOne: false
             referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_withdrawals: {
+        Row: {
+          amount: number
+          asset: string
+          cluster: string
+          confirmed_at: string | null
+          created_at: string
+          destination: string
+          error_message: string | null
+          fee_lamports: number | null
+          id: string
+          idempotency_key: string
+          initiated_by: string
+          mint: string | null
+          rejection_reason: string | null
+          signature: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          asset: string
+          cluster: string
+          confirmed_at?: string | null
+          created_at?: string
+          destination: string
+          error_message?: string | null
+          fee_lamports?: number | null
+          id?: string
+          idempotency_key: string
+          initiated_by?: string
+          mint?: string | null
+          rejection_reason?: string | null
+          signature?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          asset?: string
+          cluster?: string
+          confirmed_at?: string | null
+          created_at?: string
+          destination?: string
+          error_message?: string | null
+          fee_lamports?: number | null
+          id?: string
+          idempotency_key?: string
+          initiated_by?: string
+          mint?: string | null
+          rejection_reason?: string | null
+          signature?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_withdrawals_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "execution_wallets"
             referencedColumns: ["id"]
           },
         ]
@@ -1383,6 +1564,42 @@ export type Database = {
           updated_at?: string
           wallet_type?: Database["public"]["Enums"]["wallet_type"]
           win_rate?: number | null
+        }
+        Relationships: []
+      }
+      withdrawal_addresses: {
+        Row: {
+          address: string
+          chain: string
+          created_at: string
+          id: string
+          label: string | null
+          status: string
+          updated_at: string
+          usable_after: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          chain?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          status?: string
+          updated_at?: string
+          usable_after?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          chain?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          status?: string
+          updated_at?: string
+          usable_after?: string
+          user_id?: string
         }
         Relationships: []
       }
