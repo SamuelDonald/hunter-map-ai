@@ -74,10 +74,11 @@ export async function syncWalletDeposits(supabase: Client, userId: string, limit
 
     // USDC credit: compare the wallet's token balance before and after.
     const usdc = USDC_MINT[cluster];
-    const amountOf = (list: ParsedTx["meta"]["postTokenBalances"]) =>
+    type TokenBalanceEntry = { owner?: string; mint?: string; uiTokenAmount?: { uiAmount?: number | null } };
+    const amountOf = (list: TokenBalanceEntry[] | undefined) =>
       (list ?? [])
         .filter((b) => b.owner === address && b.mint === usdc)
-        .reduce((sum, b) => sum + Number(b.uiTokenAmount?.uiAmount ?? 0), 0);
+        .reduce((sum: number, b) => sum + Number(b.uiTokenAmount?.uiAmount ?? 0), 0);
     const usdcDelta = amountOf(tx.meta?.postTokenBalances) - amountOf(tx.meta?.preTokenBalances);
     if (usdcDelta > 0) {
       rows.push({
