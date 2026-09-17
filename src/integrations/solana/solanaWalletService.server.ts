@@ -171,7 +171,7 @@ export class SolanaWalletService {
     base.aboveReserve = base.solBalance >= minSolReserve;
     base.lastSyncAt = new Date().toISOString();
 
-    const tokens = await this.rpc.getTokenAccounts(availability.address);
+    const tokens = await this.rpc.getTokenAccounts(address);
     if (tokens.ok) base.tokenBalances = tokens.data.filter((t) => Number(t.amount) > 0);
 
     if (riskRow?.kill_switch) reasons.push("RISK_KILL_SWITCH_ENGAGED");
