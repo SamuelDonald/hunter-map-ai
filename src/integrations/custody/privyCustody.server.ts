@@ -30,13 +30,14 @@ export class PrivyCustodyProvider implements WalletCustodyProvider {
   }
 
   async createWallet(reference: { userId: string; cluster: SolanaCluster }): Promise<CustodyResult<CustodyWallet>> {
-    const result = await this.call<PrivyWalletResponse>("POST", "/v1/wallets", {
-      chain_type: "solana",
-      // Correlates the provider wallet with the HUNTER account without leaking PII.
-      additional_signers: [],
-      policy_ids: [],
-      idempotency_key: `hunter-exec-${reference.userId}-${reference.cluster}`,
-    });
+    // Idempotency travels in a header — the request body only accepts wallet
+    // fields, and an unknown body key is rejected outright by the provider.
+    const result = await this.call<PrivyWalletResponse>(
+      "POST",
+      "/v1/wallets",
+      { chain_type: "solana" },
+      { "privy-idempotency-key": `hunter-exec-${reference.userId}-${reference.cluster}` },
+    );
     if (!result.ok) return result;
     const { id, address } = result.data;
     if (!id || !address) return { ok: false, code: "CUSTODY_BAD_RESPONSE", error: "Privy did not return a wallet id and address" };
@@ -107,7 +108,12 @@ export class PrivyCustodyProvider implements WalletCustodyProvider {
   }
 
   // ------------------------------------------------------------------ transport
-  private async call<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<CustodyResult<T>> {
+  private async call<T>(
+    method: "GET" | "POST",
+    path: string,
+    body?: unknown,
+    extraHeaders?: Record<string, string>,
+  ): Promise<CustodyResult<T>> {
     const appId = env("PRIVY_APP_ID");
     const appSecret = env("PRIVY_APP_SECRET");
     if (!appId || !appSecret) return { ok: false, code: "CUSTODY_NOT_CONFIGURED", error: "Privy credentials are not configured" };
@@ -117,6 +123,7 @@ export class PrivyCustodyProvider implements WalletCustodyProvider {
       Authorization: `Basic ${btoa(`${appId}:${appSecret}`)}`,
       "privy-app-id": appId,
       "Content-Type": "application/json",
+      ...(extraHeaders ?? {}),
     };
 
     // Optional authorization key: required when the Privy app enforces
