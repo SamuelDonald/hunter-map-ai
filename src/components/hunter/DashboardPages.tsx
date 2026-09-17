@@ -16,9 +16,13 @@ import { updateRiskSettings, updateStrategyParameters, updateProfile } from "@/l
 import { closePosition } from "@/lib/hunter/trading.functions";
 import type { TokenFilters } from "@/lib/hunter/market.functions";
 import {
-  BubbleMap, Dot, HunterScore, LiveNotConfigured, MetricCard, NotConnected, PageHeader, Panel, PnlChart, WalletPanel,
+  BubbleMap, Dot, HunterScore, LiveNotConfigured, MetricCard, NotConnected, PageHeader, Panel, PnlChart,
   money, pct, usd,
 } from "./HunterUI";
+import {
+  ConnectedWalletPanel, DepositTable, LiveTradingPanel, TradingWalletPanel, WithdrawalTable,
+} from "./WalletPanels";
+
 import {
   useCandidateAnalysis, useIntegrationHealth, usePortfolio, usePositions, useProviderStates, useRiskEvents,
   useRiskSettings, useSmartMoney, useSolanaWallet, useStrategies, useSystemLogs, useTokens, useTrades,
@@ -758,18 +762,25 @@ export function WalletPage() {
     <div className="page">
       <PageHeader
         title="WALLET"
-        subtitle="Execution wallet state read from Solana — no keys, no seed phrases, no export"
+        subtitle="Segregated HUNTER trading wallet — custody-held keys, no seed phrases, no export"
         action={<LiveNotConfigured />}
       />
       <div className="grid gap-4 2xl:grid-cols-2">
-        <ExecutionWalletPanel />
+        <TradingWalletPanel />
+        <div className="space-y-4">
+          <ConnectedWalletPanel />
+          <LiveTradingPanel />
+        </div>
+      </div>
+      <div className="mt-4 grid gap-4 2xl:grid-cols-2">
+        <DepositTable />
+        <WithdrawalTable />
+      </div>
+      <div className="mt-4">
         <ExecutionReadinessPanel />
       </div>
       <div className="mt-4">
         <SolanaTransactionTable />
-      </div>
-      <div className="mt-4 grid gap-4 2xl:grid-cols-2">
-        <WalletPanel />
       </div>
       {data?.network.rpc_configured === false ? (
         <p className="mt-3 rounded-lg border border-border/60 bg-card/40 p-3 text-xs text-muted-foreground">
@@ -779,6 +790,7 @@ export function WalletPage() {
     </div>
   );
 }
+
 
 const ago = (iso: string | null | undefined) => {
   if (!iso) return "never";
