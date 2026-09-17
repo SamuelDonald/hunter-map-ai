@@ -23,6 +23,10 @@ export type WalletSnapshot = {
   state: ExecutionWalletState;
   address: string | null;
   signerBackend: string | null;
+  /** Custody backend that controls signing for this wallet (never a credential). */
+  custodyProvider: string | null;
+  /** Per-wallet live trading switch; false until the user explicitly enables it. */
+  liveExecutionEnabled: boolean;
   solBalance: number | null;
   lamports: number | null;
   minSolReserve: number;
