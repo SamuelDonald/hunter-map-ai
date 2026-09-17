@@ -56,21 +56,31 @@ export async function syncWalletDeposits(supabase: Client, userId: string, limit
     const sender = keys[0] && keys[0] !== address ? keys[0] : null;
     const rows: Database["public"]["Tables"]["wallet_deposits"]["Insert"][] = [];
 
+    // The RPC returns lamports, slots and block times as bigints; every value
+    // that reaches arithmetic or the database is converted explicitly.
+    const slot = entry.slot === null || entry.slot === undefined ? null : Number(entry.slot);
+    // Block time arrives as unix seconds (bigint) and is stored as a timestamp.
+    const blockTime =
+      entry.blockTime === null || entry.blockTime === undefined
+        ? null
+        : new Date(Number(entry.blockTime) * 1000).toISOString();
+
     // SOL credit: a positive lamport delta on the wallet's own account.
     if (index >= 0) {
-      const pre = tx.meta?.preBalances?.[index] ?? 0;
-      const post = tx.meta?.postBalances?.[index] ?? 0;
+      const pre = Number(tx.meta?.preBalances?.[index] ?? 0);
+      const post = Number(tx.meta?.postBalances?.[index] ?? 0);
       const delta = post - pre;
       // The wallet pays its own fees, so only inbound (positive) deltas count.
       if (delta > 0) {
         rows.push({
           user_id: userId, wallet_id: wallet.id, cluster, signature: entry.signature,
           sender, recipient: address, asset: "SOL", mint: null,
-          amount: delta / SOL_LAMPORTS, slot: entry.slot, block_time: entry.blockTime,
+          amount: delta / SOL_LAMPORTS, slot, block_time: blockTime,
           confirmation_status: entry.confirmationStatus ?? "confirmed",
         });
       }
     }
+
 
     // USDC credit: compare the wallet's token balance before and after.
     const usdc = USDC_MINT[cluster];
@@ -84,7 +94,7 @@ export async function syncWalletDeposits(supabase: Client, userId: string, limit
       rows.push({
         user_id: userId, wallet_id: wallet.id, cluster, signature: entry.signature,
         sender, recipient: address, asset: "USDC", mint: usdc,
-        amount: usdcDelta, slot: entry.slot, block_time: entry.blockTime,
+        amount: usdcDelta, slot, block_time: blockTime,
         confirmation_status: entry.confirmationStatus ?? "confirmed",
       });
     }
