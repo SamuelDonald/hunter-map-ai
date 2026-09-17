@@ -59,11 +59,15 @@ export async function syncWalletDeposits(supabase: Client, userId: string, limit
     // The RPC returns lamports, slots and block times as bigints; every value
     // that reaches arithmetic or the database is converted explicitly.
     const slot = entry.slot === null || entry.slot === undefined ? null : Number(entry.slot);
-    // Block time arrives as unix seconds (bigint) and is stored as a timestamp.
-    const blockTime =
-      entry.blockTime === null || entry.blockTime === undefined
-        ? null
-        : new Date(Number(entry.blockTime) * 1000).toISOString();
+    // The RPC layer already normalises block time to an ISO timestamp; a raw
+    // unix-seconds value is still accepted defensively.
+    const blockTime = ((): string | null => {
+      const raw: unknown = entry.blockTime;
+      if (raw === null || raw === undefined) return null;
+      if (typeof raw === "string") return raw;
+      const ms = Number(raw) * 1000;
+      return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
+    })();
 
     // SOL credit: a positive lamport delta on the wallet's own account.
     if (index >= 0) {
