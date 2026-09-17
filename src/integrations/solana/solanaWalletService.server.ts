@@ -196,6 +196,18 @@ export class SolanaWalletService {
    * here, so a monitoring pass can not detach or re-enable a custody wallet.
    */
   private async persist(supabase: Client, userId: string, snapshot: WalletSnapshot, error: string | null) {
+    // A monitoring pass must not overwrite provisioning progress or hide a
+    // provisioning failure behind "not configured".
+    if (!snapshot.address) {
+      const { data: current } = await supabase
+        .from("execution_wallets")
+        .select("status")
+        .eq("user_id", userId)
+        .eq("purpose", "EXECUTION")
+        .eq("cluster", snapshot.cluster)
+        .maybeSingle();
+      if (current && ["PROVISIONING", "ERROR", "DISABLED"].includes(current.status)) return;
+    }
     await supabase
       .from("execution_wallets")
       .upsert(
