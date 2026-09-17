@@ -23,6 +23,10 @@ export type WalletSnapshot = {
   state: ExecutionWalletState;
   address: string | null;
   signerBackend: string | null;
+  /** Custody backend that controls signing for this wallet (never a credential). */
+  custodyProvider: string | null;
+  /** Per-wallet live trading switch; false until the user explicitly enables it. */
+  liveExecutionEnabled: boolean;
   solBalance: number | null;
   lamports: number | null;
   minSolReserve: number;
@@ -84,6 +88,20 @@ export class SolanaWalletService {
     const availability = await signerProvider.availability();
     const reasons: string[] = [];
 
+    // The custody-provisioned wallet is authoritative; the env signer is only a
+    // fallback for infrastructure testing.
+    const { data: walletRow } = await supabase
+      .from("execution_wallets")
+      .select("public_address, custody_provider, status, live_execution_enabled")
+      .eq("user_id", userId)
+      .eq("purpose", "EXECUTION")
+      .eq("cluster", config.cluster)
+      .maybeSingle();
+    const custodyProvider =
+      walletRow?.custody_provider && walletRow.custody_provider !== "NONE" ? walletRow.custody_provider : null;
+    const custodyAddress = custodyProvider ? (walletRow?.public_address ?? null) : null;
+    const address = custodyAddress ?? availability.address;
+
     const { data: riskRow } = await supabase
       .from("risk_settings")
       .select("min_sol_reserve, kill_switch")
@@ -97,8 +115,10 @@ export class SolanaWalletService {
       purpose: "EXECUTION",
       cluster: config.cluster,
       state: "NOT_CONFIGURED",
-      address: availability.address,
-      signerBackend: availability.backend,
+      address,
+      signerBackend: custodyProvider ?? availability.backend,
+      custodyProvider,
+      liveExecutionEnabled: walletRow?.live_execution_enabled === true,
       solBalance: null,
       lamports: null,
       minSolReserve,
@@ -117,19 +137,19 @@ export class SolanaWalletService {
       .eq("cluster", config.cluster);
     base.transactionCount = count ?? 0;
 
-    if (availability.error) {
+    if (!custodyAddress && availability.error) {
       reasons.push("SIGNER_ERROR");
       base.state = "ERROR";
       await this.persist(supabase, userId, base, availability.error);
       return base;
     }
-    if (!availability.configured || !availability.address) {
-      reasons.push("EXECUTION_WALLET_SECRET_NOT_CONFIGURED");
+    if (!address) {
+      reasons.push("NO_EXECUTION_WALLET_PROVISIONED");
       base.state = "NOT_CONFIGURED";
       await this.persist(supabase, userId, base, null);
       return base;
     }
-    if (!this.validateAddress(availability.address)) {
+    if (!this.validateAddress(address)) {
       reasons.push("INVALID_EXECUTION_WALLET_ADDRESS");
       base.state = "ERROR";
       await this.persist(supabase, userId, base, "Invalid execution wallet address");
@@ -138,7 +158,7 @@ export class SolanaWalletService {
 
     base.state = "CONFIGURED";
 
-    const balance = await this.rpc.getBalance(availability.address);
+    const balance = await this.rpc.getBalance(address);
     if (!balance.ok) {
       reasons.push("RPC_UNAVAILABLE");
       base.state = "ERROR";
@@ -151,7 +171,7 @@ export class SolanaWalletService {
     base.aboveReserve = base.solBalance >= minSolReserve;
     base.lastSyncAt = new Date().toISOString();
 
-    const tokens = await this.rpc.getTokenAccounts(availability.address);
+    const tokens = await this.rpc.getTokenAccounts(address);
     if (tokens.ok) base.tokenBalances = tokens.data.filter((t) => Number(t.amount) > 0);
 
     if (riskRow?.kill_switch) reasons.push("RISK_KILL_SWITCH_ENGAGED");
@@ -170,7 +190,11 @@ export class SolanaWalletService {
     return base;
   }
 
-  /** Stores safe metadata only — address, cluster, state, balance, timestamps. */
+  /**
+   * Stores safe metadata only — address, cluster, state, balance, timestamps.
+   * Custody fields (provider, provider wallet id, live switch) are never written
+   * here, so a monitoring pass can not detach or re-enable a custody wallet.
+   */
   private async persist(supabase: Client, userId: string, snapshot: WalletSnapshot, error: string | null) {
     await supabase
       .from("execution_wallets")
@@ -180,7 +204,8 @@ export class SolanaWalletService {
           chain: "solana",
           cluster: snapshot.cluster,
           purpose: "EXECUTION",
-          public_address: snapshot.address,
+          // Never clear a provisioned address with a null.
+          ...(snapshot.address ? { public_address: snapshot.address } : {}),
           status: snapshot.state,
           sol_balance: snapshot.solBalance,
           min_sol_reserve: snapshot.minSolReserve,
