@@ -190,7 +190,11 @@ export class SolanaWalletService {
     return base;
   }
 
-  /** Stores safe metadata only — address, cluster, state, balance, timestamps. */
+  /**
+   * Stores safe metadata only — address, cluster, state, balance, timestamps.
+   * Custody fields (provider, provider wallet id, live switch) are never written
+   * here, so a monitoring pass can not detach or re-enable a custody wallet.
+   */
   private async persist(supabase: Client, userId: string, snapshot: WalletSnapshot, error: string | null) {
     await supabase
       .from("execution_wallets")
@@ -200,7 +204,8 @@ export class SolanaWalletService {
           chain: "solana",
           cluster: snapshot.cluster,
           purpose: "EXECUTION",
-          public_address: snapshot.address,
+          // Never clear a provisioned address with a null.
+          ...(snapshot.address ? { public_address: snapshot.address } : {}),
           status: snapshot.state,
           sol_balance: snapshot.solBalance,
           min_sol_reserve: snapshot.minSolReserve,
