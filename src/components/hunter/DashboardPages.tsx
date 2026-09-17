@@ -611,7 +611,7 @@ const txTone = (status: string) =>
       : status === "SUBMITTED_UNKNOWN" ? "warning" : "ai";
 
 /** Execution wallet — public metadata only. Keys never leave the server. */
-function ExecutionWalletPanel() {
+export function ExecutionWalletPanel() {
   const { data, isLoading } = useSolanaWallet();
   const w = data?.wallet;
   const state = w?.state ?? "NOT_CONFIGURED";
