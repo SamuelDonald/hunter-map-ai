@@ -19,6 +19,7 @@ import {
 import { getHunterMap, listSmartMoney, listTokens, type TokenFilters } from "@/lib/hunter/market.functions";
 import { analyzeCandidates, getIntegrationHealth } from "@/lib/hunter/integrations.functions";
 import { getSolanaWalletOverview } from "@/lib/hunter/solana.functions";
+import { getTradingWallet } from "@/lib/hunter/wallet.functions";
 
 /** Keeps queries fresh from Realtime instead of polling. */
 export function useHunterRealtime() {
@@ -145,4 +146,9 @@ export function useSmartMoney() {
 export function useSolanaWallet() {
   const fn = useServerFn(getSolanaWalletOverview);
   return useQuery({ queryKey: ["solana-wallet"], queryFn: () => fn(), refetchInterval: 30_000 });
+}
+
+export function useTradingWallet() {
+  const fn = useServerFn(getTradingWallet);
+  return useQuery({ queryKey: ["trading-wallet"], queryFn: () => fn(), refetchInterval: 30_000 });
 }
