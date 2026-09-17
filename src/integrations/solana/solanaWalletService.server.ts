@@ -88,6 +88,20 @@ export class SolanaWalletService {
     const availability = await signerProvider.availability();
     const reasons: string[] = [];
 
+    // The custody-provisioned wallet is authoritative; the env signer is only a
+    // fallback for infrastructure testing.
+    const { data: walletRow } = await supabase
+      .from("execution_wallets")
+      .select("public_address, custody_provider, status, live_execution_enabled")
+      .eq("user_id", userId)
+      .eq("purpose", "EXECUTION")
+      .eq("cluster", config.cluster)
+      .maybeSingle();
+    const custodyProvider =
+      walletRow?.custody_provider && walletRow.custody_provider !== "NONE" ? walletRow.custody_provider : null;
+    const custodyAddress = custodyProvider ? (walletRow?.public_address ?? null) : null;
+    const address = custodyAddress ?? availability.address;
+
     const { data: riskRow } = await supabase
       .from("risk_settings")
       .select("min_sol_reserve, kill_switch")
@@ -101,8 +115,10 @@ export class SolanaWalletService {
       purpose: "EXECUTION",
       cluster: config.cluster,
       state: "NOT_CONFIGURED",
-      address: availability.address,
-      signerBackend: availability.backend,
+      address,
+      signerBackend: custodyProvider ?? availability.backend,
+      custodyProvider,
+      liveExecutionEnabled: walletRow?.live_execution_enabled === true,
       solBalance: null,
       lamports: null,
       minSolReserve,
@@ -121,19 +137,19 @@ export class SolanaWalletService {
       .eq("cluster", config.cluster);
     base.transactionCount = count ?? 0;
 
-    if (availability.error) {
+    if (!custodyAddress && availability.error) {
       reasons.push("SIGNER_ERROR");
       base.state = "ERROR";
       await this.persist(supabase, userId, base, availability.error);
       return base;
     }
-    if (!availability.configured || !availability.address) {
-      reasons.push("EXECUTION_WALLET_SECRET_NOT_CONFIGURED");
+    if (!address) {
+      reasons.push("NO_EXECUTION_WALLET_PROVISIONED");
       base.state = "NOT_CONFIGURED";
       await this.persist(supabase, userId, base, null);
       return base;
     }
-    if (!this.validateAddress(availability.address)) {
+    if (!this.validateAddress(address)) {
       reasons.push("INVALID_EXECUTION_WALLET_ADDRESS");
       base.state = "ERROR";
       await this.persist(supabase, userId, base, "Invalid execution wallet address");
@@ -142,7 +158,7 @@ export class SolanaWalletService {
 
     base.state = "CONFIGURED";
 
-    const balance = await this.rpc.getBalance(availability.address);
+    const balance = await this.rpc.getBalance(address);
     if (!balance.ok) {
       reasons.push("RPC_UNAVAILABLE");
       base.state = "ERROR";
