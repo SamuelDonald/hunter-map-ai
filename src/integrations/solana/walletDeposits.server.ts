@@ -94,7 +94,7 @@ export async function syncWalletDeposits(supabase: Client, userId: string, limit
       rows.push({
         user_id: userId, wallet_id: wallet.id, cluster, signature: entry.signature,
         sender, recipient: address, asset: "USDC", mint: usdc,
-        amount: usdcDelta, slot: entry.slot, block_time: entry.blockTime,
+        amount: usdcDelta, slot, block_time: blockTime,
         confirmation_status: entry.confirmationStatus ?? "confirmed",
       });
     }
