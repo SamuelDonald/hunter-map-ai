@@ -42,3 +42,55 @@ export function getGmgnApiKey(): string | null {
 export function isGmgnConfigured(): boolean {
   return getGmgnApiKey() !== null;
 }
+
+/**
+ * PEM signing credential for GMGN's signed trade routes. Separate from both the
+ * data API key and any Solana wallet key. Server-side only.
+ */
+export function getGmgnSigningKey(): string | null {
+  const key = process.env["GMGN_SIGNING_KEY"];
+  return key && key.trim() ? key.trim() : null;
+}
+
+/**
+ * Wallet address GMGN executes from. GMGN's signed swap routes submit from a
+ * wallet GMGN itself controls for the account, so this must be configured
+ * explicitly and can never be inferred from a custody wallet.
+ */
+export function getGmgnTradeAddress(): string | null {
+  const address = process.env["GMGN_TRADE_FROM_ADDRESS"];
+  return address && address.trim() ? address.trim() : null;
+}
+
+const numberEnv = (name: string, fallback: number): number => {
+  const raw = process.env[name];
+  const parsed = raw === undefined ? NaN : Number(raw);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+/**
+ * Explicit, configurable execution policy. Nothing here is silently relaxed at
+ * runtime: a quote that needs more slippage or more fee than configured is
+ * rejected, never auto-widened.
+ */
+export const EXECUTION_POLICY = {
+  /** Hard cap regardless of strategy configuration (percent). */
+  get MAX_SLIPPAGE_PERCENT() {
+    return numberEnv("GMGN_MAX_SLIPPAGE_PERCENT", 10);
+  },
+  /** Priority fee offered per transaction, in SOL. */
+  get PRIORITY_FEE_SOL() {
+    return numberEnv("GMGN_PRIORITY_FEE_SOL", 0.001);
+  },
+  /** Absolute ceiling for the priority fee, in SOL. Never exceeded. */
+  get MAX_PRIORITY_FEE_SOL() {
+    return numberEnv("GMGN_MAX_PRIORITY_FEE_SOL", 0.01);
+  },
+  /** Anti-MEV routing is deterministic configuration, off unless requested. */
+  get ANTI_MEV() {
+    return process.env["GMGN_ANTI_MEV"] === "true";
+  },
+} as const;
+
+export const WSOL_MINT = "So11111111111111111111111111111111111111112";
+
