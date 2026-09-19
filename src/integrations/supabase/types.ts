@@ -286,6 +286,98 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunities: {
+        Row: {
+          address: string
+          analysis_state: string
+          chain: string
+          created_at: string
+          data_fingerprint: string | null
+          discovered_at: string
+          discovery_source: string
+          evaluation_count: number
+          expires_at: string | null
+          hunter_score: number | null
+          id: string
+          last_evaluated_at: string | null
+          last_refresh_at: string | null
+          liquidity: number | null
+          metadata: Json
+          next_evaluation_at: string
+          price: number | null
+          refresh_count: number
+          rejection_reason: string | null
+          smart_money_score: number | null
+          status: string
+          symbol: string | null
+          token_id: string | null
+          updated_at: string
+          volume_24h: number | null
+        }
+        Insert: {
+          address: string
+          analysis_state?: string
+          chain?: string
+          created_at?: string
+          data_fingerprint?: string | null
+          discovered_at?: string
+          discovery_source: string
+          evaluation_count?: number
+          expires_at?: string | null
+          hunter_score?: number | null
+          id?: string
+          last_evaluated_at?: string | null
+          last_refresh_at?: string | null
+          liquidity?: number | null
+          metadata?: Json
+          next_evaluation_at?: string
+          price?: number | null
+          refresh_count?: number
+          rejection_reason?: string | null
+          smart_money_score?: number | null
+          status?: string
+          symbol?: string | null
+          token_id?: string | null
+          updated_at?: string
+          volume_24h?: number | null
+        }
+        Update: {
+          address?: string
+          analysis_state?: string
+          chain?: string
+          created_at?: string
+          data_fingerprint?: string | null
+          discovered_at?: string
+          discovery_source?: string
+          evaluation_count?: number
+          expires_at?: string | null
+          hunter_score?: number | null
+          id?: string
+          last_evaluated_at?: string | null
+          last_refresh_at?: string | null
+          liquidity?: number | null
+          metadata?: Json
+          next_evaluation_at?: string
+          price?: number | null
+          refresh_count?: number
+          rejection_reason?: string | null
+          smart_money_score?: number | null
+          status?: string
+          symbol?: string | null
+          token_id?: string | null
+          updated_at?: string
+          volume_24h?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
@@ -584,6 +676,60 @@ export type Database = {
           latency_ms?: number | null
           paused_until?: string | null
           provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      radar_state: {
+        Row: {
+          consecutive_failures: number
+          enabled: boolean
+          heartbeat_at: string | null
+          id: string
+          interval_seconds: number
+          last_error: string | null
+          last_failure_at: string | null
+          last_report: Json
+          last_scan_started_at: string | null
+          last_success_at: string | null
+          next_scan_at: string
+          retry_backoff_seconds: number
+          scan_count: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          enabled?: boolean
+          heartbeat_at?: string | null
+          id?: string
+          interval_seconds?: number
+          last_error?: string | null
+          last_failure_at?: string | null
+          last_report?: Json
+          last_scan_started_at?: string | null
+          last_success_at?: string | null
+          next_scan_at?: string
+          retry_backoff_seconds?: number
+          scan_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          enabled?: boolean
+          heartbeat_at?: string | null
+          id?: string
+          interval_seconds?: number
+          last_error?: string | null
+          last_failure_at?: string | null
+          last_report?: Json
+          last_scan_started_at?: string | null
+          last_success_at?: string | null
+          next_scan_at?: string
+          retry_backoff_seconds?: number
+          scan_count?: number
           status?: string
           updated_at?: string
         }
